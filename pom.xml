@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+
+
+	<groupId>net.samsarasoftware.papyrus</groupId>
+	<artifactId>net.samsarasoftware.papyrus.diagramtemplate.runtime</artifactId>
+	<version>1.2.1-SNAPSHOT</version>
+	<packaging>eclipse-plugin</packaging>
+
+	<properties>
+		<tycho.version>2.2.0</tycho.version>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>eclipse-platform</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/releases/2019-12</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>elk-platform</id>
+			<layout>p2</layout>
+			<url>http://build.eclipse.org/modeling/elk/updates/0.6.0/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.samsarasoftware.scripting</groupId>
+			<artifactId>uml-scripting-engine</artifactId>
+			<version>0.2.1</version>
+		</dependency>
+	</dependencies>
+	<build>
+
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>${tycho.version}</version>
+				<extensions>true</extensions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-compiler-plugin</artifactId>
+				<version>${tycho.version}</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<compilerArgument>-err:none</compilerArgument>
+
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<version>${tycho.version}</version>
+				<configuration>
+					<resolver>p2</resolver>
+					<pomDependencies>consider</pomDependencies>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-source-plugin</artifactId>
+				<version>${tycho.version}</version>
+				<executions>
+<!-- 					<execution>
+						<id>attach-source</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>plugin-source</goal>
+						</goals>
+					</execution> -->
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>net.samsarasoftware</groupId>
+				<artifactId>tycho-versions-plugin</artifactId>
+				<version>0.1.0</version>
+				<executions>
+					<execution>
+						<id>versions</id>
+						<phase>pre-clean</phase>
+						<goals>
+							<goal>synchronize-version</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

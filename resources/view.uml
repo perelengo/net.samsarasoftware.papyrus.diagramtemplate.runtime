@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="20131001" xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:modelview="http://www.samsarasoftware.net/modelview.profile" xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML" xsi:schemaLocation="http://www.samsarasoftware.net/modelview.profile modelview.profile.uml#_NPYckDJ8EeuNR60Z_jZTgw">
+  <uml:Model xmi:id="AddModelReferencesToAnotherModelOutputModel" name="AddModelReferencesToAnotherModelOutputModel">
+    <packageImport xmi:type="uml:PackageImport" xmi:id="_AJH-0JxlEeu08tAUJiR6rQ">
+      <importedPackage xmi:type="uml:Model" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#_0"/>
+    </packageImport>
+    <packagedElement xmi:type="uml:Package" xmi:id="_PYtLkJntEeud_NlTUKVB-A" name="Enumerations of model">
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="_PYtLkZntEeud_NlTUKVB-A" name="Enumeration1"/>
+    </packagedElement>
+    <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_PWeW8JntEeud_NlTUKVB-A">
+      <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_PWgMIJntEeud_NlTUKVB-A" source="http://www.eclipse.org/uml2/2.0.0/UML">
+        <references xmi:type="ecore:EPackage" href="modelview.profile.uml#_NPYckDJ8EeuNR60Z_jZTgw"/>
+      </eAnnotations>
+      <appliedProfile xmi:type="uml:Profile" href="modelview.profile.uml#_wiD2ICsgEeuPkNCMp8sB_w"/>
+    </profileApplication>
+  </uml:Model>
+  <modelview:ViewContainer xmi:id="_PYvAwJntEeud_NlTUKVB-A" base_Element="_PYtLkJntEeud_NlTUKVB-A">
+    <targetElement xmi:type="uml:Model" href="model.uml#_jGEMYMzsEeqmrbZwnausIQ"/>
+  </modelview:ViewContainer>
+  <modelview:ViewOf xmi:id="_PYvAwZntEeud_NlTUKVB-A" base_Element="_PYtLkZntEeud_NlTUKVB-A">
+    <relatedElement xmi:type="uml:Enumeration" href="model.uml#_PoSvoMztEeqmrbZwnausIQ"/>
+  </modelview:ViewOf>
+</xmi:XMI>

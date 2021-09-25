@@ -1,0 +1,205 @@
+
+
+
+
+modeltype uml uses "http://www.eclipse.org/uml2/5.0.0/UML";
+modeltype umlPrimitiveTypes uses "http://www.eclipse.org/uml2/5.0.0/UML";
+
+
+
+transformation AddModelReferencesToAnotherModelTest(
+	
+	inout file : uml
+	, in umlPrimitiveTypesFile:umlPrimitiveTypes
+	
+	,in modelviewProfileFile : uml 
+
+		//-inout 
+		,inout inoutFile1 : uml
+		
+	
+);
+
+
+property allModels:Collection(uml::Model)=file.objects()->select(e | e.oclIsTypeOf(uml::Model))->any(true).oclAsType(Model).allOwnedElements()->collect(e | e.oclAsType(Element).getRelationships())->collect( e | e.relatedElement)->collect(e | e.getModel())->asSet();
+	
+//-inout 
+property inoutModel1 : Model = inoutFile1.objects()->select(e | e.oclIsTypeOf(uml::Model))->any(true).oclAsType(Model);
+		
+
+
+main(){
+	file.objects()->select(e | e.oclIsTypeOf(uml::Model))->forEach(__model){
+		var model:uml::Model;
+		model:=__model.oclAsType(Model);
+		
+		
+		
+	var modelviewProfile:=modelviewProfileFile.objects()->select(e | e.oclIsTypeOf(uml::Profile))->any(true).oclAsType(uml::Profile);
+	if(not(model.getAppliedProfiles()->includes(modelviewProfile))){
+		model.applyProfile(modelviewProfile);
+	};
+
+	
+		
+		
+		model.map AddModelReferencesToAnotherModelTest(model);
+	};
+};
+
+/** BEGIN Utility method used in the generated script **/
+
+mapping Element::setStereotypeByQualifiedName(qualifiedStereotypeName : String)  {
+	var st:=self.getApplicableStereotype(qualifiedStereotypeName);
+	self.applyStereotype(st);
+}
+
+mapping Element::setTaggedValueByStereotypeQualifiedName(qualifiedStereotypeName : String, qualifiedTaggedValueName : String, value : OclAny)  {
+	var st:=self.getApplicableStereotype(qualifiedStereotypeName);
+	self.setValue(st, qualifiedTaggedValueName, value);
+}
+
+mapping Element::setTaggedValueByStereotypeQualifiedName(qualifiedStereotypeName : String, qualifiedTaggedValueName : String, value : Collection(String))  {
+	var st:=self.getApplicableStereotype(qualifiedStereotypeName);
+	Sequence{0..value->size()-1}->forEach(i){
+		self.setValue(st, qualifiedTaggedValueName+'['+i.toString()+']', value->asSequence()->at(i+1));
+	}
+}
+
+query  getStereotype (elem : Element, qualifiedName : String) : Stereotype { 
+	elem.getAppliedStereotypes()->select(s | 
+		getStereotypeHierarchy(s.oclAsType(Stereotype))
+		->exists(sh | 
+			sh.oclAsType(Stereotype).qualifiedName=qualifiedName
+		)
+	)->asSequence()->at(1).oclAsType(Stereotype)
+}
+query getStereotypeHierarchy(st : Stereotype) : Sequence(Stereotype) { 
+	if(st.general->size()>0) then
+		st.general->select(u | u.oclIsTypeOf(Stereotype))->collect(u | getStereotypeHierarchy(u.oclAsType(Stereotype)))->asSequence()->append(st)
+	else
+		Sequence{st}
+	endif
+}
+/** END Utility method used in the generated script **/
+
+/** BEGIN : Reference-resolvers **/
+	
+			
+mapping Package(n : String) : uml::Package{
+	name:=n;
+};
+	
+				
+mapping Enumeration(n : String) : uml::Enumeration{
+	name:=n;
+};
+	
+/** END: Reference-resolvers **/
+	
+/** BEGIN : User-defined additional methods **/
+	
+query getEnumeration1Literals( model : uml::Model ) : Set ( EnumerationLiteral ) {
+	return model.allOwnedElements()
+      ->selectByType(uml::Enumeration)
+      ->any(e | e.name = 'Enumeration1' ).ownedLiteral
+}
+
+/** END: User-defined additional methods **/
+
+/** BEGIN : User-defined queries **/
+	
+query getLastEnumerationSelectorElement( model:uml::Model , elem:Sequence(uml::Element)):uml::Element{
+	return elem->first().oclAsType(uml::Element);
+}
+
+query allPackagesWithEnumerations( model:uml::Model , elem:Sequence(uml::Element)):Sequence(uml::Package){
+	let packagesWithEnums:Sequence(Package) = model.allOwnedElements()->select( p | p.oclIsKindOf(Package) and  p.oclAsType(Package).packagedElement->exists( e | e.oclIsTypeOf(uml::Enumeration))).oclAsType(uml::Package)->asSequence() in 
+	
+	if(model.ownedElement->exists(e | e.oclIsTypeOf(Enumeration))) then
+		return 	packagesWithEnums->append(model)
+	else
+		return 	packagesWithEnums
+	endif
+}
+
+query getLastPackageSelectorElement( model:uml::Model , elem:Sequence(uml::Element)):uml::Package{
+	return elem->first().oclAsType(uml::Package);
+}
+
+/** END : User-defined queries **/
+
+mapping inout Package::AddModelReferencesToAnotherModelTest(
+inout model : uml::Model
+) {
+
+	// ignore as variable 
+	var	_QW3zIC20EeuNR60Z_jZTgw:uml::Package;
+	var	_tgD6cBSHEeuPkNCMp8sB_w:uml::Enumeration;
+	// ignore as variable _hMa9UDJ9EeuNR60Z_jZTgw
+	var	_gbJ4cDJ9EeuNR60Z_jZTgw:uml::Package;
+	// ignore as variable _sJkK0CvvEeuNR60Z_jZTgw
+	var	_i15nECvvEeuNR60Z_jZTgw:uml::Enumeration;
+
+
+
+		//qvtoTemplate _QW3zIC20EeuNR60Z_jZTgw
+		allPackagesWithEnumerations(inoutModel1,null)->forEach(__elem1){
+			_QW3zIC20EeuNR60Z_jZTgw :=null;
+			_QW3zIC20EeuNR60Z_jZTgw := map Package('AddModelReferencesToAnotherModelTest_Enumerations of package '+__elem1.name+'_0');
+
+			packagedElement+=object _QW3zIC20EeuNR60Z_jZTgw :uml::Package{
+				name:= 'AddModelReferencesToAnotherModelTest_Enumerations of package '+__elem1.name+'_0';
+					
+
+	//ignore template update or delete struct '+__elem2.oclAsType(NamedElement).name+'
+			};
+
+			_QW3zIC20EeuNR60Z_jZTgw.setStereotypeByQualifiedName('modelview::ViewContainer');
+		
+				_QW3zIC20EeuNR60Z_jZTgw.setTaggedValueByStereotypeQualifiedName('modelview::ViewContainer','targetElement',getLastPackageSelectorElement(model,Sequence{__elem1}));
+
+		//qvtoTemplate _tgD6cBSHEeuPkNCMp8sB_w
+		(__elem1.ownedElement->selectByType(uml::Enumeration))->forEach(__elem2){
+				_tgD6cBSHEeuPkNCMp8sB_w :=null;
+				_tgD6cBSHEeuPkNCMp8sB_w := map Enumeration('AddModelReferencesToAnotherModelTest_Enumerations of package '+__elem1.name+'_'+__elem2.oclAsType(NamedElement).name+'_0');
+
+				_QW3zIC20EeuNR60Z_jZTgw.packagedElement+=object _tgD6cBSHEeuPkNCMp8sB_w :uml::Enumeration{
+					name:= 'AddModelReferencesToAnotherModelTest_Enumerations of package '+__elem1.name+'_'+__elem2.oclAsType(NamedElement).name+'_0';
+					
+				};
+
+				_tgD6cBSHEeuPkNCMp8sB_w.setStereotypeByQualifiedName('modelview::ViewOf');
+		
+				_tgD6cBSHEeuPkNCMp8sB_w.setTaggedValueByStereotypeQualifiedName('modelview::ViewOf','relatedElement',getLastEnumerationSelectorElement(model,Sequence{__elem2,__elem1}));
+
+		};
+
+		};
+
+	// mode qvtoTemplate -- ignore as template LastPackageSelectorElement
+
+	// mode qvtoTemplate -- ignore as template LastEnumerationSelectorElement
+
+    
+		allPackagesWithEnumerations(inoutModel1,null)->forEach(__elem1){
+			map Package('AddModelReferencesToAnotherModelTest_Enumerations of package '+__elem1.name+'_0').name:='Enumerations of package '+__elem1.name+'';
+			map Package('AddModelReferencesToAnotherModelTest_Enumerations of package '+__elem1.name+'_0').name:='Enumerations of package '+__elem1.name+'';
+
+		(__elem1.ownedElement->selectByType(uml::Enumeration))->forEach(__elem2){
+				map Enumeration('AddModelReferencesToAnotherModelTest_Enumerations of package '+__elem1.name+'_'+__elem2.oclAsType(NamedElement).name+'_0').name:=''+__elem2.oclAsType(NamedElement).name+'';
+				map Enumeration('AddModelReferencesToAnotherModelTest_Enumerations of package '+__elem1.name+'_'+__elem2.oclAsType(NamedElement).name+'_0').name:=''+__elem2.oclAsType(NamedElement).name+'';
+
+		};
+
+		};
+
+    
+	// ignore as template LastPackageSelectorElement
+
+	// ignore as template LastEnumerationSelectorElement
+
+    
+    
+  
+}

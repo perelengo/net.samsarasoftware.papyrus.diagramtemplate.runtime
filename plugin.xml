@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+ <copyright>
+ </copyright>
+
+ $Id$
+-->
+
+<plugin>
+<extension
+      point="org.eclipse.ui.commands">
+   <command
+         name="GenerateDiagram"
+         id="net.samsarasoftware.papyrus.diagramtemplate.runtime.DiagramTemplateLauncher"
+      	defaultHandler="net.samsarasoftware.papyrus.diagramtemplate.runtime.DiagramTemplateLauncher">
+      	
+   </command>
+</extension>
+<extension
+      point="org.eclipse.ui.menus">
+   <menuContribution
+         allPopups="true"
+         locationURI="popup:org.eclipse.papyrus.views.modelexplorer.modelexplorer.popup?">
+      <menu
+               id="GenerateDiagram"
+               label="GenerateDiagram">
+            <command  commandId="net.samsarasoftware.papyrus.diagramtemplate.runtime.DiagramTemplateLauncher"
+            label="GenerateDiagram1"
+            style="push"
+            >
+      </command>
+            </menu>
+   </menuContribution>
+</extension>
+
+</plugin>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmi:version="20131001" xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML" xmi:id="_jGEMYMzsEeqmrbZwnausIQ" name="AddModelReferencesToAnotherModelTest">
+  <packageImport xmi:type="uml:PackageImport" xmi:id="_wTcsEJ-EEeulaMD9GjmL9g">
+    <importedPackage xmi:type="uml:Model" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#_0"/>
+  </packageImport>
+  <packagedElement xmi:type="uml:Package" xmi:id="_XnndEK8-EeuzdsVfkK-8MQ" name="Package4">
+    <packagedElement xmi:type="uml:Enumeration" xmi:id="_PoSvoMztEeqmrbZwnausIQ" name="Enumeration1">
+      <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="_TkwlMMztEeqmrbZwnausIQ" name="EnumerationLiteral1"/>
+      <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="_T6WasMztEeqmrbZwnausIQ" name="EnumerationLiteral2"/>
+      <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="_UPLbMMztEeqmrbZwnausIQ" name="EnumerationLiteral3"/>
+    </packagedElement>
+  </packagedElement>
+  <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_G7tgcK8-EeuvRcgb5V4Xxg">
+    <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_G7uHgK8-EeuvRcgb5V4Xxg" source="http://www.eclipse.org/uml2/2.0.0/UML">
+      <references xmi:type="ecore:EPackage" href="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_NPYckDJ8EeuNR60Z_jZTgw"/>
+    </eAnnotations>
+    <appliedProfile xmi:type="uml:Profile" href="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_wiD2ICsgEeuPkNCMp8sB_w"/>
+  </profileApplication>
+  <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_aUONQK8-EeuvRcgb5V4Xxg">
+    <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_aUO0UK8-EeuvRcgb5V4Xxg" source="http://www.eclipse.org/uml2/2.0.0/UML">
+      <references xmi:type="ecore:EPackage" href="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_NPYckDJ8EeuNR60Z_jZTgw"/>
+    </eAnnotations>
+    <appliedProfile xmi:type="uml:Profile" href="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_wiD2ICsgEeuPkNCMp8sB_w"/>
+  </profileApplication>
+</uml:Model>
