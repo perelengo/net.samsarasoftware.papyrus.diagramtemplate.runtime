@@ -10,6 +10,8 @@
       <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="_UPLbMMztEeqmrbZwnausIQ" name="EnumerationLiteral3"/>
     </packagedElement>
   </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dTMOMB4rEey1OL6weTBvXg" name="Class5"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_pUzl8B4rEey1OL6weTBvXg" name="Class6"/>
   <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_G7tgcK8-EeuvRcgb5V4Xxg">
     <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_G7uHgK8-EeuvRcgb5V4Xxg" source="http://www.eclipse.org/uml2/2.0.0/UML">
       <references xmi:type="ecore:EPackage" href="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_NPYckDJ8EeuNR60Z_jZTgw"/>

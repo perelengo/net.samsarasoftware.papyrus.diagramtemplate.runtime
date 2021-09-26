@@ -31,7 +31,7 @@ Bundle-Vendor: %providerName
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  lib/uml-scripting-engine-0.2.0-SNAPSHOT.jar
-Bundle-Version: 1.2.1.qualifier
+Bundle-Version: 1.2.1
 Bundle-Localization: plugin
 Bundle-Name: %pluginName
 Bundle-Activator: net.samsarasoftware.papyrus.diagramtemplate.runtime.plugin.DiagramTemplateEditorPlugin$Implementation

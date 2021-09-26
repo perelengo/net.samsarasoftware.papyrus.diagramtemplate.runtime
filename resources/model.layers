@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layers:LayersStackApplication xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:layers="http://www.eclipse.org/papyrus/infra/gmfdiag/layers" xmlns:notation="http://www.eclipse.org/gmf/runtime/1.0.2/notation" xmi:id="_iaopIB4rEey1OL6weTBvXg">
+  <layersStacks xmi:type="layers:LayersStack" xmi:id="_iaxzEB4rEey1OL6weTBvXg" state="detached">
+    <layers xmi:type="layers:TopLayerOperator" xmi:id="_iaxzER4rEey1OL6weTBvXg" application="_iaopIB4rEey1OL6weTBvXg" name="Top Layer" isLayerEnabled="true" owningLayersStack="_iaxzEB4rEey1OL6weTBvXg" state="detached">
+      <layers xmi:type="layers:Layer" xmi:id="_nTgckB4rEey1OL6weTBvXg" application="_iaopIB4rEey1OL6weTBvXg" name="layer0" isLayerEnabled="false" owningLayersStack="_iaxzEB4rEey1OL6weTBvXg" state="detached" propertyValues="_uTaN8R4rEey1OL6weTBvXg">
+        <propertyValueMap xmi:type="layers:StringToTypeInstanceMap" xmi:id="_uTaN8B4rEey1OL6weTBvXg" key="css">
+          <value xmi:type="layers:CSSInstance" xmi:id="_uTaN8R4rEey1OL6weTBvXg" style=""/>
+        </propertyValueMap>
+        <views xmi:type="notation:Shape" href="platform:/plugin/net.samsarasoftware.papyrus.diagramtemplate.runtime/resources/model.notation#_dTgXQB4rEey1OL6weTBvXg"/>
+      </layers>
+      <layers xmi:type="layers:Layer" xmi:id="_rnIN4B4rEey1OL6weTBvXg" application="_iaopIB4rEey1OL6weTBvXg" name="layer1" isLayerEnabled="false" owningLayersStack="_iaxzEB4rEey1OL6weTBvXg" state="detached">
+        <views xmi:type="notation:Shape" href="platform:/plugin/net.samsarasoftware.papyrus.diagramtemplate.runtime/resources/model.notation#_pU00EB4rEey1OL6weTBvXg"/>
+      </layers>
+    </layers>
+    <diagram xmi:type="notation:Diagram" href="platform:/plugin/net.samsarasoftware.papyrus.diagramtemplate.runtime/resources/model.notation#_VYPw4B4rEey1OL6weTBvXg"/>
+  </layersStacks>
+</layers:LayersStackApplication>
