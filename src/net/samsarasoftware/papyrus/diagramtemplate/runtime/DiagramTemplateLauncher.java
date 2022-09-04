@@ -33,6 +33,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.service.DiagramLayoutEngine;
@@ -378,7 +379,56 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 				}
 				
 				// Save the resource
-				//modelSet.save(new NullProgressMonitor());
+				modelSet.save(new IProgressMonitor() {
+					
+					@Override
+					public void worked(int arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void subTask(String arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void setTaskName(String arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void setCanceled(boolean arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public boolean isCanceled() {
+						// TODO Auto-generated method stub
+						return false;
+					}
+					
+					@Override
+					public void internalWorked(double arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void done() {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void beginTask(String arg0, int arg1) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
 				
 			} catch (Exception e1) {
 				e1.printStackTrace(System.out);
@@ -466,10 +516,12 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 
 										// Retrieve the selection to show for this diagram
 										Object selection = diagramsMapping.get(pageID);
-										addElementsFor((EObject) selection, ((Diagram) pageDiagram).getElement(), (DiagramEditor) activeEditor, diagramEditPart,null);
+										addElementsFor((EObject) selection
+												//, ((Diagram) pageDiagram).getElement()
+												, (DiagramEditor) activeEditor, diagramEditPart);
 
 										// Arrange all recursively
-										//arrangeRecursively(activeEditor,diagramEditPart);
+										arrangeRecursively(activeEditor,diagramEditPart,editingDomain);
 									}
 
 									// This page is processed now (may be not necessary)
@@ -499,15 +551,22 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * @param editPartToShowIn
 	 *            the editPart to show elements in
 	 */
-	protected void addElementsFor(EObject selection, EObject root, DiagramEditor activeEditor, EditPart editPartToShowIn, EObject container) {
+	protected void addElementsFor(EObject selection, DiagramEditor activeEditor, EditPart editPartToShowIn) {
 		// Go through the SelectionRef
 		EList<EObject> it = ((EObject)selection).eContents();
 		
 		for (EObject eObject : it) {
-			EditPart actualEditPart = showElementIn(eObject, activeEditor, editPartToShowIn, 0, container);
+//			EditPartViewer viewer = editPartToShowIn.getViewer();
+//			Map<?, ?> map = viewer.getEditPartRegistry();
+
+			
+			EditPart actualEditPart = showElementIn(eObject, activeEditor, editPartToShowIn, 0);
 			Stereotype st=((Element) eObject).getAppliedStereotype("modelview::ViewOf");
 			Element resolved=(Element) ((Element) eObject).getValue(st, "relatedElement");
-			processRecursively(actualEditPart, eObject,  activeEditor,resolved);
+			
+			addElementsFor(eObject, activeEditor, actualEditPart);
+			//Esto funciona
+			//processRecursively(actualEditPart, eObject,  activeEditor,resolved);
 		}
 	}
 	protected void processRecursively(EditPart actualEditPart, EObject elementToShow, DiagramEditor activeEditor, EObject container) {
@@ -556,9 +615,9 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 
 					if (!foundParentWithElementToShowAsElement) {
 						// Last we must be sure that it is really new one
-						if (!elementProcessed.contains(view)) {
+						if (!elementProcessed.contains(view)) { editPart.resolveSemanticElement();
 							// We can process it
-							addElementsFor(elementToShow, elementToShow, activeEditor, editPart, container);
+							addElementsFor(elementToShow, activeEditor, editPart);
 
 							// FIXME we may need to add all new elements as processed
 							// Record that it is processed
@@ -604,7 +663,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * @return
 	 * 		the editPart in which the element has been actually added
 	 */
-	protected EditPart showElementIn(EObject elementToShow, DiagramEditor activeEditor, EditPart editPart, int position, EObject container) {
+	protected EditPart showElementIn(EObject elementToShow, DiagramEditor activeEditor, EditPart editPart, int position) {
 		EditPart returnEditPart = null;
 
 		if (
@@ -617,7 +676,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			Element resolved=(Element) ((Element) elementToShow).getValue(st, "relatedElement");
 			list.add(resolved);
 			dropObjectsRequest.setObjects(list);
-			dropObjectsRequest.setLocation(new Point(10 * (gposition +1), 10 * (gposition+1)));
+			dropObjectsRequest.setLocation(new Point(40 , 40 ));
 			
 			Command commandDrop = editPart.getCommand(dropObjectsRequest);
 			
@@ -627,20 +686,39 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			} else {
 				if (commandDrop.canExecute()) {
 					activeEditor.getDiagramEditDomain().getDiagramCommandStack().execute(commandDrop);
-					gposition=gposition+1;
-					returnEditPart = editPart;
-					((GraphicalEditPart)editPart).resolveSemanticElement();
-					EList elementsInEditPart = ((DiagramEditPart)editPart).getNotationView().getChildren();
-
-					View createdView=((View)elementsInEditPart.get(elementsInEditPart.size()-1));
-					Element element = (Element) createdView.getElement();
 					
-					for (Object curr : elementsInEditPart) {
-						if(((Element)((View)curr).getElement()).getOwner().equals(container)) {
-							((View)createdView.eContainer()).removeChild(createdView);
-							((View)curr).insertChild(createdView);
+					
+					((GraphicalEditPart)editPart).refresh();
+					
+					//Buscamos el editPart creado
+					returnEditPart = editPart;
+					ArrayList<EditPart> childrenList = new ArrayList<EditPart>();
+					findAllChildren(childrenList, editPart);
+					for (Object child : childrenList) {
+						if (child instanceof GraphicalEditPart) {
+							if(
+									((GraphicalEditPart)child).resolveSemanticElement().eResource().getURIFragment(((GraphicalEditPart)child).resolveSemanticElement())
+								.equals(
+									resolved.eResource().getURIFragment(resolved)
+								)
+							)
+								returnEditPart=(EditPart) child;
 						}
 					}
+					
+					//((GraphicalEditPart)editPart).resolveSemanticElement();
+					//EList elementsInEditPart = ((DiagramEditPart)editPart).getNotationView().getChildren();
+
+					//View createdView=((View)elementsInEditPart.get(elementsInEditPart.size()-1));
+					//Element element = (Element) createdView.getElement();
+					
+//					for (Object curr : elementsInEditPart) {
+//						if(((Element)((View)curr).getElement()).getOwner().equals(container)) {
+//							((View)createdView.eContainer()).removeChild(createdView);
+//							((View)curr).insertChild(createdView);
+//						}
+//					}
+					/**
 					
 //					((editPart).getViewer()).getEditPartRegistry().get(
 //							org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0)
@@ -654,6 +732,9 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 					//((GraphicalViewer)((GraphicalEditPart)editPart).getViewer()).getEditPartRegistry();
 					//((Diagram)org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0).eContainer()).getChildren();
 					//org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getAllEditParts(editPart)
+					 * 
+					 * 
+					 */
 				} else {
 					processChildren = true;
 				}
@@ -672,6 +753,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 							if (commandDropChild.canExecute()) {
 								activeEditor.getDiagramEditDomain().getDiagramCommandStack().execute(commandDropChild);
 								found = true;
+								((GraphicalEditPart)child).refresh();
 								returnEditPart = (EditPart) child;
 								break;
 							}
@@ -684,6 +766,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			}
 		}
 
+		
 		return returnEditPart;
 	}
 
@@ -724,11 +807,12 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	/**
 	 * Helper method used to arrange recursively editparts
 	 * @param activeEditor 
+	 * @param editingDomain 
 	 *
 	 * @param editpart
 	 *            the editpart to process
 	 */
-	protected void arrangeRecursively(IEditorPart activeEditor, EditPart editPart) {
+	protected void arrangeRecursively(IEditorPart activeEditor, EditPart editPart, TransactionalEditingDomain editingDomain) {
 
 		//configure ELK
 		Parameters params = new Parameters();
@@ -738,13 +822,17 @@ public class DiagramTemplateLauncher extends AbstractHandler {
             .setProperty(CoreOptions.LAYOUT_ANCESTORS, false)
             .setProperty(CoreOptions.ZOOM_TO_FIT, false);
         
-        //invoke ELK on all elements
-		DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, (DiagramEditPart)editPart,  params);
 
+		DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, editPart,  params);
+        		
+        
+        //https://www.eclipse.org/forums/index.php/t/1107403/
+        //DiagramLayoutEngine.invokeLayout(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart(),editPart,params);
+        
 		for (Object element : editPart.getChildren()) {
 			if (element instanceof EditPart) {
-				DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, (DiagramEditPart)editPart,  params);
-				arrangeRecursively(activeEditor,(EditPart) element);
+				DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, editPart,  params);
+				arrangeRecursively(activeEditor,(EditPart) element, editingDomain);
 			}
 		}
 	}
