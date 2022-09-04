@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 
@@ -12,7 +10,6 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-
 
 
 	<groupId>net.samsarasoftware.papyrus</groupId>
@@ -26,9 +23,18 @@
 
 	<repositories>
 		<repository>
-			<id>eclipse-platform</id>
+			<id>eclipse-2021-12</id>
 			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/2019-12</url>
+			<url>https://download.eclipse.org/releases/2021-12/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+
+		</repository>
+		<repository>
+			<id>eclipse-papyrus 6 update site</id>
+			<layout>p2</layout>
+			<url>https://download.eclipse.org/modeling/mdt/papyrus/updates/releases/2021-12/</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -36,18 +42,27 @@
 		<repository>
 			<id>elk-platform</id>
 			<layout>p2</layout>
-			<url>http://build.eclipse.org/modeling/elk/updates/0.6.0/</url>
+			<url>https://download.eclipse.org/elk/updates/releases/0.7.1/</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+			<id>eclipse-orbit-20220302</id>
+			<layout>p2</layout>
+			<url>https://download.eclipse.org/tools/orbit/downloads/drops/R20220302172233/repository/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
 	</repositories>
 
 	<dependencies>
 		<dependency>
 			<groupId>net.samsarasoftware.scripting</groupId>
 			<artifactId>uml-scripting-engine</artifactId>
-			<version>0.2.1</version>
+			<version>0.3.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -84,7 +99,7 @@
 				<artifactId>tycho-source-plugin</artifactId>
 				<version>${tycho.version}</version>
 				<executions>
-<!-- 					<execution>
+					<!-- 					<execution>
 						<id>attach-source</id>
 						<phase>process-classes</phase>
 						<goals>
@@ -109,4 +124,38 @@
 			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>install-p2-dependencies</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<version>2.9</version>
+						<executions>
+
+							<execution>
+								<id>install-plugins</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-dependencies</goal>
+								</goals>
+								<inherited>false</inherited>
+								<configuration>
+									<addParentPoms>true</addParentPoms>
+									<includeGroupIds>p2.eclipse-plugin</includeGroupIds>
+									<copyPom>true</copyPom>
+									<includeTypes>jar</includeTypes>
+									<outputDirectory>${M2_REPO}</outputDirectory>
+									<useRepositoryLayout>true</useRepositoryLayout>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+
+		</profile>
+	</profiles>
 </project>
