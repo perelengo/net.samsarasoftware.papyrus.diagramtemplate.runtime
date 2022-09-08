@@ -35,7 +35,7 @@ import org.eclipse.uml2.uml.internal.impl.ModelImpl;
 
 /**
  * Simple Ocl tooling initializer
- * @author perel
+ * @author perelengo
  *
  */
 public class OCLTool {
