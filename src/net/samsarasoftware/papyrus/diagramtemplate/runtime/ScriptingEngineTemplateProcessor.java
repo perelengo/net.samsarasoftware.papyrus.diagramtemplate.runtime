@@ -93,7 +93,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 			
 		}
 		
-		//Siempre hay un único fichero inout que es el fichero de salida
+		//Siempre hay un Ãºnico fichero inout que es el fichero de salida
 		ModelExtent viewModelExtent=new ModelExtentAdapter(targetUML);
 		INPUT.add(viewModelExtent);
 		
@@ -106,8 +106,8 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 		//restauramos el classloader
 		Thread.currentThread().setContextClassLoader(ccld);
 		
-		//if(!templateResultFilelPath.exists()) { 
-		//inicializamos el modelo destino necesario para iniciar la transformación
+		if(!templateResultFilelPath.exists()) { 
+		//inicializamos el modelo destino necesario para iniciar la transformaciï¿½n
 			FileOutputStream fos = new FileOutputStream(templateResultFilelPath);
 			fos.write(new String(
 					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -124,7 +124,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 				);
 			fos.flush();
 			fos.close();
-		//}
+		}
 
 
 		runTransform(qvto, INPUT, resourceSet);
@@ -163,7 +163,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 		try {
 			ModelExtent editedResource = ((ModelExtent)INPUT.get(INPUT.size()-1));
 			
-			//Para obtener la transacción, debemos tener cargado el elemento
+			//Para obtener la transacciï¿½n, debemos tener cargado el elemento
 			if( (editedResource.getContents()==null || editedResource.getContents().isEmpty() )
 				&& editedResource instanceof Param )
 				((Param)editedResource).initialize(resourceSet);
