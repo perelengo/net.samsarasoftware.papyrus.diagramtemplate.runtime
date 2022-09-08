@@ -21,6 +21,7 @@ limitations under the License.
  */
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.transaction.RecordingCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
@@ -66,6 +68,7 @@ import org.eclipse.papyrus.infra.architecture.representation.PapyrusRepresentati
 import org.eclipse.papyrus.infra.core.architecture.RepresentationKind;
 import org.eclipse.papyrus.infra.core.architecture.merged.MergedArchitectureContext;
 import org.eclipse.papyrus.infra.core.architecture.merged.MergedArchitectureViewpoint;
+import org.eclipse.papyrus.infra.core.editor.BackboneException;
 import org.eclipse.papyrus.infra.core.resource.ModelMultiException;
 import org.eclipse.papyrus.infra.core.resource.ModelSet;
 import org.eclipse.papyrus.infra.core.sashwindows.di.service.IPageManager;
@@ -80,6 +83,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.EditorPart;
 import org.eclipse.uml2.uml.Element;
 import org.eclipse.uml2.uml.Model;
 import org.eclipse.uml2.uml.Package;
@@ -187,9 +191,10 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	/**
 	 * This is the main method for the template launcher. Executes the template
 	 * @param editor 
+	 * @throws Exception 
 	 *
 	 */
-	public void execute(URI templateDiURI, ModelSet modelSet, IMultiDiagramEditor editor) {
+	public void execute(URI templateDiURI, ModelSet modelSet, IMultiDiagramEditor editor) throws Exception {
 		gposition=0;
 		
 		File templateResultFilelPath=null;
@@ -203,11 +208,130 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		diagramsMapping=new HashMap<String, Object>();
 		
 		ModelSet templateModelSet 		= new DiResourceSet();
+		templateDiURI		= getTemplateURI();
+		Resource modelSetNotation=null;
+		Resource templateModelSetNotation=null;
+		
+		templateResultFilelPath=getTemplateResultFilePath();
+		
+		//Load template DI
+		templateModelSet.loadModels(templateDiURI);
+		// Identify already available template diagrams
+		templateModelSetNotation = NotationUtils.getNotationResource(templateModelSet);
+		
+		initializeAndHandleExceptions(templateDiURI, templateModelSet, templateModelSet, templateDiagramsInResource, templateDiagramsInResource, templateDiagram, modelSetNotation, templateModelSetNotation);
+		
+		
+		/** 1- Invoke UmlScriptingEngine to generate qvto **/
+		templateResultFilelPath=invokeUmlScriptingEngineAndHandleExceptions(templateDiURI,  templateResultFilelPath, (EditorPart)editor, templateModelSet);
+			
+		/** 2-Cada paquete <<ViewContainer>> debería contener un solo diagrama **/
+		createDiagramsAndHandleExceptions(templateResultFilelPath, templateModelSet, elementProcessed, templateDiagram, templateModelSetNotation);
+		
+		// Save the resource
+		saveModelSetAndHandleExceptions(modelSet);
+		
+		/** Fill diagrams **/
+		fillDiagramAndHandleExceptions(editor, modelSet,templateResultFilelPath);
+		
+		/** Finalize resouces **/
+		finalizeAndHandleExceptions(templateModelSet, templateResultFilelPath);
+	}
+
+
+	/** 
+	 * The path of the uml with the viewModel stereotypes applied 
+	 */
+	public File getTemplateResultFilePath() {
+		return null;
+	}
+
+	public void finalizeAndHandleExceptions(ResourceSetImpl modelSet, File templateResultFilelPath) {
 		try {
-			
-			templateDiURI		= getTemplateURI();
-			
-			//Load target DI
+			modelSet.getResource(URI.createFileURI(templateResultFilelPath.getPath()),true).unload();
+			templateRegistry.disposeRegistry();
+		} catch (ServiceException ex) {
+			// Ignore
+		}		
+	}
+
+	public void fillDiagramAndHandleExceptions(IMultiDiagramEditor editor, ModelSet modelSet,
+			File templateResultFilelPath) {
+		try {
+			fillDiagram(editor, modelSet,templateResultFilelPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
+	}
+
+	public void saveModelSetAndHandleExceptions(ModelSet modelSet) {
+		try {
+			saveModelSet(modelSet);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+	public void createDiagramsAndHandleExceptions(File templateResultFilelPath, ModelSet templateModelSet,
+			List<View> elementProcessed2, Diagram templateDiagram, Resource templateModelSetNotation) {
+		try {
+			createDiagrams(templateResultFilelPath, templateModelSet, elementProcessed, templateDiagram, templateModelSetNotation);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		
+	}
+
+	public File invokeUmlScriptingEngineAndHandleExceptions(URI templateDiURI, File templateResultFilePath,
+			EditorPart editor, ModelSet templateModelSet) {
+		try {
+			return invokeUmlScriptingEngine(templateDiURI,  templateResultFilePath,  editor, templateModelSet);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * Handle exceptions on initialize
+	 * @param templateDiURI
+	 * @param modelSet
+	 * @param templateModelSet
+	 * @param diagramsInResource
+	 * @param templateDiagramsInResource
+	 * @param templateDiagram
+	 * @param modelSetNotation 
+	 * @param templateModelSetNotation 
+	 * @throws Exception
+	 */
+	public void initializeAndHandleExceptions (URI templateDiURI, ModelSet modelSet, ModelSet templateModelSet, ArrayList<String> diagramsInResource, ArrayList<String> templateDiagramsInResource, Diagram templateDiagram, Resource modelSetNotation, Resource templateModelSetNotation) throws Exception{
+		try {
+			initialize(templateDiURI, modelSet, templateModelSet, diagramsInResource, templateDiagramsInResource, templateDiagram, modelSetNotation, templateModelSetNotation);
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	/**
+	 * Initialize registries and diagrams
+	 * @param templateDiURI
+	 * @param modelSet
+	 * @param templateModelSet
+	 * @param diagramsInResource
+	 * @param templateDiagramsInResource
+	 * @param templateDiagram
+	 * @param modelSetNotation 
+	 * @param templateModelSetNotation 
+	 * @throws Exception
+	 */
+	public void initialize(URI templateDiURI, ModelSet modelSet, ModelSet templateModelSet, ArrayList<String> diagramsInResource, ArrayList<String> templateDiagramsInResource, Diagram templateDiagram, Resource modelSetNotation, Resource templateModelSetNotation) throws Exception{
+		
+		//Load target DI
 			representationsKinds=initializeDiagramCategories(modelSet); //[org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@7228b434, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@3ce5f36a, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@7c777ab2, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@563ef05c, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@610077bb, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@726da652, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@3508e047, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@14955aaa, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@764a5a2c, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@690a2d81, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@3ce5f36a, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@1bf2e23f, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@258cabe1, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@1b30e46, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@396d5dd4, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@3502a3dc, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@7591c53e, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@6c4924f4, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@3f994754, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@7c777ab2, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@1f250f38, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@64e681d7, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@412d673b, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@563ef05c, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@610077bb, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@726da652, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@3508e047, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@14955aaa, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@764a5a2c, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@34fb3bad, org.eclipse.papyrus.infra.gmfdiag.common.helper.DiagramPrototype@7c777ab2, org.eclipse.papyrus.infra.nattable.common.helper.TableViewPrototype@726da652]
 		
 				/** Available diagrams and its related classes
@@ -248,25 +372,8 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 				}
 			 */
 			
-			//Load template DI
-			templateModelSet.loadModels(templateDiURI);
-			//ArrayList<ViewPrototype> templateRepresentationKinds=initializeDiagramCategories(templateModelSet);
 			
 			
-		} catch (ModelMultiException ex) {
-			ex.printStackTrace(System.out);
-		}
-
-		try {
-//			modelRegistry = new ExtensionServicesRegistry(org.eclipse.papyrus.infra.core.Activator.PLUGIN_ID);
-//			modelRegistry.add(ModelSet.class, Integer.MAX_VALUE, modelSet);
-//			try {
-//				//we need to start the service
-//				//more info at https://www.eclipse.org/forums/index.php/t/840760/
-//				modelRegistry.startRegistry();
-//			} catch (ServiceException ex) {
-//				// Ignore
-//			}
 
 			templateRegistry = new ExtensionServicesRegistry(org.eclipse.papyrus.infra.core.Activator.PLUGIN_ID);
 			templateRegistry.add(ModelSet.class, Integer.MAX_VALUE, templateModelSet);
@@ -278,11 +385,9 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			
 
 			// Identify already available diagrams
-			Resource modelSetNotation = NotationUtils.getNotationResource(modelSet);
+			modelSetNotation = NotationUtils.getNotationResource(modelSet);
 			diagramsInResource.addAll(getAllDiagramsInNotation(modelSetNotation));
 			
-			// Identify already available template diagrams
-			Resource templateModelSetNotation = NotationUtils.getNotationResource(templateModelSet);
 			TreeIterator<EObject> it2 = templateModelSetNotation.getAllContents();
 			while (it2.hasNext()) {
 				EObject diagram = it2.next();
@@ -292,169 +397,151 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 				}
 			}
 
-			//FASE 1 Create diagrams
-			//Pasos:
-			//1- Invocar el UmlScriptingEngine sobre el modelo template para generar la qvto
-			//Ejecutar la qvto sobre el modelo target
-			//Se generarán N paquetes estereotipados con ViewContainer.
-			//Cada paquete <<ViewContainer>> debería contener un solo diagrama
-			//Por cada diagrama del paquete
-			//mirar si el modelo destino tiene un diagrama con el mismo nombre
-			//Si no existe, crearlo vacío
-			
-			//FASE 2 : update diagrams
-			//Por cada elemento que aparece en el nuevo diagrama
-			//Mirar si existe el elemento uml relacionado al elemento gráfico del antiguo diagrama o se ha eliminado
-			//si se ha eliminado, eliminar del diagrama
-			//Mirar si ya está añadido al antiguo diagrama
-			//Si no está añadido, añadirlo
-			
-			try {
-				/** 1- Invocar el UmlScriptingEngine sobre el modelo template para generar la qvto **/
-				ScriptingEngineTemplateProcessor adapter=new ScriptingEngineTemplateProcessor();
-				
-				String workspacePath=ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-				
-				String templateUML 	= templateDiURI.toString().replace("platform:/resource",workspacePath);
-				templateUML 	= templateUML.substring(0,templateUML.length()-2)+ "uml";
-				templateResultFilelPath=File.createTempFile(templateUML.substring(0,templateUML.lastIndexOf("."))+"_transform",".uml");
-				templateResultFilelPath.deleteOnExit();
-				
-				Resource targetUMLResource=null;
-				String modelResourceName = editor.getEditorInput().getName().substring(0,editor.getEditorInput().getName().lastIndexOf("."));
-				for (Resource modelSetResource: modelSet.getResources()) {
-					if(modelSetResource instanceof UMLResource && modelSetResource.getURI().toString().endsWith(modelResourceName+".uml"))
-						targetUMLResource=modelSetResource;
-				}
-				
-				adapter.process(templateUML,modelSet,targetUMLResource, templateResultFilelPath);
-								
-				/** 2-Cada paquete <<ViewContainer>> debería contener un solo diagrama **/
-				//TEST 1- ResourceSet transformedResourceSet = refreshResourceSet(scriptingEngine);
-				
-				//get the transformed resource
-				//TEST 1- Resource resource = transformedResourceSet.getResource(URI.createFileURI(templateResultFilelPath.getPath()), true);
-				Resource resource = modelSet.getResource(URI.createFileURI(templateResultFilelPath.getPath()), true);
-				//get the context classifier
-				Model templateResultFilelPathModel = (Model) EcoreUtil.getObjectByType(resource.getContents(),UMLPackage.Literals.MODEL);
-
-				// create an OCLTool
-				//TEST 1 -OCLTool oclTool = new OCLTool((EClass) templateResultFilelPathModel.eClass(), transformedResourceSet.getPackageRegistry());
-				OCLTool oclTool = new OCLTool((EClass) templateResultFilelPathModel.eClass(), modelSet.getPackageRegistry());
-
-				String viewContainersQuery="self.oclAsType(Model).allOwnedElements()->select(e | not e.oclAsType(Element).getAppliedStereotype('modelview::ViewContainer').oclIsUndefined())";
-				//String viewElementsQuery="self.oclAsType(Element).allOwnedElements()->select(e | not e.oclAsType(Element).getAppliedStereotype('modelview::ViewOf').oclIsUndefined())";
-				HashSet viewContainers = (HashSet) oclTool.evaluateQuery(viewContainersQuery,templateResultFilelPathModel);
-				//foreach viewContainer
-				for (Object containerObject: viewContainers) {
-					org.eclipse.uml2.uml.Package viewContainer=(Package) containerObject;
-					//HashSet views=(HashSet) oclTool.evaluateQuery(viewElementsQuery,viewContainer);
-					
-					if(!diagramsInResource.contains(viewContainer.getName())) {
-						//If not already created, create the diagram
-						CreationCommandDescriptor creationCommandDescriptor = getCommands(representationsKinds,templateDiagram);
-						if (creationCommandDescriptor != null) {
-	
-	
-							EObject root=(EObject) viewContainer.getValue(viewContainer.getAppliedStereotype("modelview::ViewContainer"),"targetElement");
-							creationCommandDescriptor.getCommand().createDiagram(modelSet, root, viewContainer.getName());
-							
-							Diagram newDiagram = getDiagramByName(modelSetNotation, viewContainer.getName());
-							diagramsCreated.put(viewContainer.getName(),newDiagram);
-							diagramsMapping.put(((Diagram) newDiagram).getName(),containerObject);
-							
-							
-						}else {
-							MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "Error while generating diagrams","Unknown diagram type "+templateDiagram.getName());
-						}
-						
-					}else {
-						//diagram to update
-						Diagram diagram = getDiagramByName(modelSetNotation, viewContainer.getName());
-						diagramsToUpdate.put(viewContainer.getName(), diagram);
-						diagramsMapping.put(((Diagram) diagram).getName(),containerObject);
-						
-					}
-					
-				}
-				
-				// Save the resource
-				modelSet.save(new IProgressMonitor() {
-					
-					@Override
-					public void worked(int arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-					
-					@Override
-					public void subTask(String arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-					
-					@Override
-					public void setTaskName(String arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-					
-					@Override
-					public void setCanceled(boolean arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-					
-					@Override
-					public boolean isCanceled() {
-						// TODO Auto-generated method stub
-						return false;
-					}
-					
-					@Override
-					public void internalWorked(double arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-					
-					@Override
-					public void done() {
-						// TODO Auto-generated method stub
-						
-					}
-					
-					@Override
-					public void beginTask(String arg0, int arg1) {
-						// TODO Auto-generated method stub
-						
-					}
-				});
-				
-			} catch (Exception e1) {
-				e1.printStackTrace(System.out);
-			}
-
-
-
-		} catch (ServiceException ex) {
-			ex.printStackTrace(System.out);
-		}
-		//FASE 1 completada
 		
-		try {
-			fillDiagram(editor, modelSet,templateResultFilelPath);
-		} catch (Exception ex) {
-			ex.printStackTrace(System.out);
-		}
-		try {
-			modelSet.getResource(URI.createFileURI(templateResultFilelPath.getPath()),true).unload();
-			templateRegistry.disposeRegistry();
-		} catch (ServiceException ex) {
-			// Ignore
-		}
 	}
 
+	public void saveModelSet(ModelSet modelSet) throws Exception {
+		modelSet.save(new IProgressMonitor() {
+			
+			@Override
+			public void worked(int arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void subTask(String arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void setTaskName(String arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void setCanceled(boolean arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public boolean isCanceled() {
+				// TODO Auto-generated method stub
+				return false;
+			}
+			
+			@Override
+			public void internalWorked(double arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void done() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void beginTask(String arg0, int arg1) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 
+		
+	}
+
+	public void createDiagrams(File templateResultFilelPath, ModelSet modelSet,  List<View> diagramsInResource, Diagram templateDiagram, Resource modelSetNotation) throws Exception {
+		//TEST 1- ResourceSet transformedResourceSet = refreshResourceSet(scriptingEngine);
+		
+		//get the transformed resource
+		//TEST 1- Resource resource = transformedResourceSet.getResource(URI.createFileURI(templateResultFilelPath.getPath()), true);
+		Resource resource = modelSet.getResource(URI.createFileURI(templateResultFilelPath.getPath()), true);
+		//get the context classifier
+		Model templateResultFilelPathModel = (Model) EcoreUtil.getObjectByType(resource.getContents(),UMLPackage.Literals.MODEL);
+
+		// create an OCLTool
+		//TEST 1 -OCLTool oclTool = new OCLTool((EClass) templateResultFilelPathModel.eClass(), transformedResourceSet.getPackageRegistry());
+		OCLTool oclTool = new OCLTool((EClass) templateResultFilelPathModel.eClass(), modelSet.getPackageRegistry());
+
+		String viewContainersQuery="self.oclAsType(Model).allOwnedElements()->select(e | not e.oclAsType(Element).getAppliedStereotype('modelview::ViewContainer').oclIsUndefined())";
+		//String viewElementsQuery="self.oclAsType(Element).allOwnedElements()->select(e | not e.oclAsType(Element).getAppliedStereotype('modelview::ViewOf').oclIsUndefined())";
+		HashSet viewContainers = (HashSet) oclTool.evaluateQuery(viewContainersQuery,templateResultFilelPathModel);
+		//foreach viewContainer
+		for (Object containerObject: viewContainers) {
+			org.eclipse.uml2.uml.Package viewContainer=(Package) containerObject;
+			//HashSet views=(HashSet) oclTool.evaluateQuery(viewElementsQuery,viewContainer);
+			
+			if(!diagramsInResource.contains(viewContainer.getName())) {
+				//If not already created, create the diagram
+				CreationCommandDescriptor creationCommandDescriptor = getCommands(representationsKinds,templateDiagram);
+				if (creationCommandDescriptor != null) {
+
+
+					EObject root=(EObject) viewContainer.getValue(viewContainer.getAppliedStereotype("modelview::ViewContainer"),"targetElement");
+					creationCommandDescriptor.getCommand().createDiagram(modelSet, root, viewContainer.getName());
+					
+					Diagram newDiagram = getDiagramByName(modelSetNotation, viewContainer.getName());
+					diagramsCreated.put(viewContainer.getName(),newDiagram);
+					diagramsMapping.put(((Diagram) newDiagram).getName(),containerObject);
+					
+					
+				}else {
+					MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "Error while generating diagrams","Unknown diagram type "+templateDiagram.getName());
+				}
+				
+			}else {
+				//diagram to update
+				Diagram diagram = getDiagramByName(modelSetNotation, viewContainer.getName());
+				diagramsToUpdate.put(viewContainer.getName(), diagram);
+				diagramsMapping.put(((Diagram) diagram).getName(),containerObject);
+				
+			}
+			
+		}
+
+		
+	}
+
+	/**
+	 * Execute the UML-Scripting-Engine template to generate the uml with viewModel stereotypes applied
+	 * @param templateDiURI
+	 * @param templateResultFilelPath
+	 * @param editor
+	 * @param modelSet
+	 * @return
+	 * @throws Exception
+	 */
+	public File invokeUmlScriptingEngine(Object templateDiURI, File templateResultFilelPath, EditorPart editor, ResourceSetImpl modelSet) throws Exception {
+		ScriptingEngineTemplateProcessor adapter=new ScriptingEngineTemplateProcessor();
+		
+		String workspacePath=ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+		
+		String templateUML 	= templateDiURI.toString().replace("platform:/resource",workspacePath);
+		templateUML 	= templateUML.substring(0,templateUML.length()-2)+ "uml";
+
+		if(templateResultFilelPath==null) {
+			templateResultFilelPath=File.createTempFile(templateUML.substring(0,templateUML.lastIndexOf("."))+"_transform",".uml");
+			templateResultFilelPath.deleteOnExit();
+		}
+		
+		
+		Resource targetUMLResource=null;
+		String modelResourceName = editor.getEditorInput().getName().substring(0,editor.getEditorInput().getName().lastIndexOf("."));
+		for (Resource modelSetResource: modelSet.getResources()) {
+			if(modelSetResource instanceof UMLResource && modelSetResource.getURI().toString().endsWith(modelResourceName+".uml"))
+				targetUMLResource=modelSetResource;
+		}
+		
+		adapter.process(templateUML,modelSet,targetUMLResource, templateResultFilelPath);
+
+		return templateResultFilelPath;
+		
+	}
 
 	private Diagram getDiagramByName(Resource modelSetNotation, String name) {
 		TreeIterator<EObject> it = modelSetNotation.getAllContents();
@@ -847,7 +934,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			try {
 				ModelSet modelSet = papyrusEditor.getServicesRegistry().getService(ModelSet.class);
 				execute(null,modelSet, (IMultiDiagramEditor) editor);
-			} catch (ServiceException e) {
+			} catch (Exception e) {
 				throw new ExecutionException(e.getMessage(), e);
 			}
 		}
