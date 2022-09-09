@@ -45,7 +45,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import net.samsarasoftware.papyrus.diagramtemplate.runtime.TemplateProcessor;
 import net.samsarasoftware.scripting.ScriptingEngine;
 import net.samsarasoftware.scripting.qvto.In;
 import net.samsarasoftware.scripting.qvto.InOut;
@@ -63,7 +62,33 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 	}
 	
 	@Override
-	public void process(String templateUMLPath, ResourceSet resourceSet,Resource targetUML, File templateResultFilelPath) throws Exception {
+	public File process(String templateUMLPath, ResourceSet resourceSet,Resource targetUML, File templateResultFilelPath) throws Exception {
+
+		if(templateResultFilelPath==null) {
+			templateResultFilelPath=File.createTempFile(templateUMLPath.substring(0,templateUMLPath.lastIndexOf("."))+"_transform",".uml");
+			templateResultFilelPath.deleteOnExit();
+
+			//inicializamos el modelo destino necesario para iniciar la transformaci�n
+			FileOutputStream fos = new FileOutputStream(templateResultFilelPath);
+			fos.write(new String(
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+					+ "<xmi:XMI xmi:version=\"20131001\" "
+					+ " xmlns:xmi=\"http://www.omg.org/spec/XMI/20131001\""
+					+ " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+					+ " xmlns:ecore=\"http://www.eclipse.org/emf/2002/Ecore\""
+					+ " xmlns:uml=\"http://www.eclipse.org/uml2/5.0.0/UML\""
+					+ ">\r\n" 
+					+ "	<uml:Model xmi:id=\"viewmodel__temp\" name=\"viewmodel__temp\">"
+					+ " </uml:Model>"
+					+ "</xmi:XMI>\r\n"
+					).getBytes("UTF-8")
+				);
+			fos.flush();
+			fos.close();
+			
+		}
+
+		
 		List INPUT=new ArrayList();
 		INPUT.add( new InOut(URI.createFileURI(templateResultFilelPath.getPath())));
 		INPUT.add( new In(URI.createURI("pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml")));
@@ -105,30 +130,11 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 		File qvto=runCompile(templateUMLPath);
 		//restauramos el classloader
 		Thread.currentThread().setContextClassLoader(ccld);
-		
-		if(!templateResultFilelPath.exists()) { 
-		//inicializamos el modelo destino necesario para iniciar la transformaci�n
-			FileOutputStream fos = new FileOutputStream(templateResultFilelPath);
-			fos.write(new String(
-					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-					+ "<xmi:XMI xmi:version=\"20131001\" "
-					+ " xmlns:xmi=\"http://www.omg.org/spec/XMI/20131001\""
-					+ " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
-					+ " xmlns:ecore=\"http://www.eclipse.org/emf/2002/Ecore\""
-					+ " xmlns:uml=\"http://www.eclipse.org/uml2/5.0.0/UML\""
-					+ ">\r\n" 
-					+ "	<uml:Model xmi:id=\"viewmodel__temp\" name=\"viewmodel__temp\">"
-					+ " </uml:Model>"
-					+ "</xmi:XMI>\r\n"
-					).getBytes("UTF-8")
-				);
-			fos.flush();
-			fos.close();
-		}
 
 
 		runTransform(qvto, INPUT, resourceSet);
 
+		return templateResultFilelPath;
 		
 	}
 

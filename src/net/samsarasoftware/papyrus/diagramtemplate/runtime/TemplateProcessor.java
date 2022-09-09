@@ -22,13 +22,12 @@ limitations under the License.
 
 import java.io.File;
 
-
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 
 public interface TemplateProcessor {
 
 
-	public void process(String templateUMLPath, ResourceSet resourceSet, Resource targetUML, File templateResultFilelPath)
+	public File process(String templateUMLPath, ResourceSet resourceSet, Resource targetUML, File templateResultFilelPath)
 			throws Exception;
 }
