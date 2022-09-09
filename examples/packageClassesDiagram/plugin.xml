@@ -27,7 +27,7 @@
                id="GenerateDiagram"
                label="Generate diagram">
             <command  commandId="net.samsarasoftware.papyrus.diagramtemplate.packageclassesdiagram.PackageClassesDiagramLauncher"
-            label="Classes diagram per package"
+            label="Example - Classes diagram per package"
             style="push"
             >
       </command>
