@@ -108,7 +108,6 @@
 					</execution> -->
 				</executions>
 			</plugin>
-			</plugin>
 		</plugins>
 	</build>
 	<profiles>
@@ -128,7 +127,7 @@
 								<goals>
 									<goal>copy-dependencies</goal>
 								</goals>
-								<inherited>false</inherited>
+								<inherited>false</inherited>	
 								<configuration>
 									<addParentPoms>true</addParentPoms>
 									<includeGroupIds>p2.eclipse-plugin</includeGroupIds>
