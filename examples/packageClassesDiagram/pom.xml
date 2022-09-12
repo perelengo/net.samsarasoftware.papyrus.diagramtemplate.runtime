@@ -16,7 +16,7 @@
 
 
 	<groupId>net.samsarasoftware.papyrus.diagramtemplate</groupId>
-	<artifactId>net.samsarasoftware.papyrus.diagramtemplate.packageClassesDiagram</artifactId>
+	<artifactId>net.samsarasoftware.papyrus.diagramtemplate.packageclassesdiagram</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
