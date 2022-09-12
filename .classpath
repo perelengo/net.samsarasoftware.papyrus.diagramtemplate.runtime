@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="profile-src"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.0.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/bsf-2.4.0.jar" sourcepath="/home/pere/Descargas/org.apache.bsf.source_2.4.0.v201103030230.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/rhino-1.7.12.jar"/>
