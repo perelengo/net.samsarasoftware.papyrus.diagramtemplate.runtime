@@ -28,6 +28,6 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 public interface TemplateProcessor {
 
 
-	public File process(String templateUMLPath, ResourceSet resourceSet, Resource targetUML, File templateResultFilelPath)
+	public File process(String templatePath, ResourceSet resourceSet, Resource targetUML, File templateResultFilelPath)
 			throws Exception;
 }

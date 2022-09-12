@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+ <copyright>
+ </copyright>
+
+ $Id$
+-->
+
+<plugin>
+<extension
+      point="org.eclipse.ui.commands">
+   <command
+         name="Classes diagram per package"
+         id="net.samsarasoftware.papyrus.diagramtemplate.qvtoPackageClassesDiagram.qvtoPackageClassesDiagramLauncher"
+      	defaultHandler="net.samsarasoftware.papyrus.diagramtemplate.qvtoPackageClassesDiagram.qvtoPackageClassesDiagramLauncher">
+      	
+   </command>
+</extension>
+<extension
+      point="org.eclipse.ui.menus">
+   <menuContribution
+         allPopups="true"
+         locationURI="popup:org.eclipse.papyrus.views.modelexplorer.modelexplorer.popup?">
+      <menu
+               id="GenerateDiagram"
+               label="Generate diagram">
+            <command  commandId="net.samsarasoftware.papyrus.diagramtemplate.qvtoPackageClassesDiagram.qvtoPackageClassesDiagramLauncher"
+            label="Example - Classes diagram per package"
+            style="push"
+            >
+      </command>
+            </menu>
+   </menuContribution>
+</extension>
+
+</plugin>
