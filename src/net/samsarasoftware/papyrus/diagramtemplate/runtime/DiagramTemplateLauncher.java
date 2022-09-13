@@ -59,6 +59,7 @@ import org.eclipse.gmf.runtime.diagram.ui.requests.DropObjectsRequest;
 import org.eclipse.gmf.runtime.notation.Diagram;
 import org.eclipse.gmf.runtime.notation.View;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.papyrus.commands.CreationCommandDescriptor;
 import org.eclipse.papyrus.commands.CreationCommandRegistry;
 import org.eclipse.papyrus.editor.PapyrusMultiDiagramEditor;
@@ -116,7 +117,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	}
 
 
-	protected  URI getTemplateURI() {
+	protected  URI getTemplateURI() throws Exception {
 		return URI.createPlatformResourceURI("test/resources/script.di");
 	}
 
@@ -134,7 +135,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			PapyrusMultiDiagramEditor papyrusEditor = (PapyrusMultiDiagramEditor)editor;
 			try {
 				ModelSet modelSet = papyrusEditor.getServicesRegistry().getService(ModelSet.class);
-				execute(modelSet, (IMultiDiagramEditor) editor);
+				execute(modelSet, event,(IMultiDiagramEditor) editor);
 			} catch (Exception e) {
 				throw new ExecutionException(e.getMessage(), e);
 			}
@@ -144,13 +145,13 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 
 	/**
 	 * This is the main method for the template launcher. Executes the template
+	 * @param event 
 	 * @param editor 
 	 * @throws Exception 
 	 *
 	 */
-	public void execute(ModelSet targetModelSet, IMultiDiagramEditor editor) throws Exception {
+	public void execute(ModelSet targetModelSet, ExecutionEvent event, IMultiDiagramEditor editor) throws Exception {
 
-		 
 		// Identify already available template diagrams
 		ArrayList<ViewPrototype>  	representationsKinds=initializeDiagramCategories(targetModelSet); // List of Available diagrams defined by the model architecture framework
 		
@@ -319,6 +320,8 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		String workspacePath=ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 		
 		String templateUML 	= pluginDiagramTemplateDiURI.toString().replace("platform:/resource",workspacePath);
+		templateUML=templateUML.replace("file:","");
+		
 		templateUML 	= templateUML.substring(0,templateUML.length()-2)+ "uml";
 
 		Resource targetUMLResource=null;
@@ -701,10 +704,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		//First round to layout
         DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, editPart,  params);
         		
-        //second round to relayout is necessary because is a top to child layout so, inner content may have changed in the first layout
-        //this is easier than doing a bottom-up layout
-        DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, editPart,  params);
-        
+         
         
 		for (Object element : editPart.getChildren()) {
 			if (element instanceof EditPart) {
