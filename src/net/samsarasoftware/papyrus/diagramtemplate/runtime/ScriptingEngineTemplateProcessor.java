@@ -62,7 +62,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 	}
 	
 	@Override
-	public File process(String templateUMLPath, ResourceSet resourceSet,Resource targetUML, File templateResultFilelPath) throws Exception {
+	public File process(String templateUMLPath, ResourceSet resourceSet,Resource targetUML, File templateResultFilelPath, String params) throws Exception {
 
 		if(templateResultFilelPath==null) {
 			templateResultFilelPath=File.createTempFile(templateUMLPath.substring(0,templateUMLPath.lastIndexOf("."))+"_transform",".uml");
@@ -127,7 +127,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 		ClassLoader ccld = Thread.currentThread().getContextClassLoader();
 		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		//compilamos
-		File qvto=runCompile(templateUMLPath);
+		File qvto=runCompile(templateUMLPath, params);
 		//restauramos el classloader
 		Thread.currentThread().setContextClassLoader(ccld);
 
@@ -144,19 +144,20 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 	 * 
 	 * @param scriptingEngine
 	 * @param templateUML
+	 * @param params 
 	 * @param targetUML
 	 * @param outputModelPath
 	 * @return 
 	 * @throws Exception 
 	 */
-	protected File runCompile( String templateUML) throws Exception {
+	protected File runCompile( String templateUML, String params) throws Exception {
 		FileInputStream fis=null;
 		try{
 			fis=new FileInputStream(templateUML);
 			ArrayList<String> IN = new ArrayList<String>();
 			IN.add("aaa"); //Just let know the transform needs an inoutFile (the source model we want to generate the viewmodel for)
 			ArrayList<String> empty = new ArrayList<String>();
-			return scriptingEngine.runCompile(fis, IN, empty,empty);
+			return scriptingEngine.runCompile(fis, IN, empty,empty,params);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;

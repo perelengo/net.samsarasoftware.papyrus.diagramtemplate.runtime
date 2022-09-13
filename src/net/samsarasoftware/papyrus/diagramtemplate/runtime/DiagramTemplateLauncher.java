@@ -42,7 +42,9 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.ENamedElement;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.impl.EObjectImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -60,9 +62,12 @@ import org.eclipse.gmf.runtime.notation.Diagram;
 import org.eclipse.gmf.runtime.notation.View;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.papyrus.commands.CreationCommandDescriptor;
 import org.eclipse.papyrus.commands.CreationCommandRegistry;
 import org.eclipse.papyrus.editor.PapyrusMultiDiagramEditor;
+import org.eclipse.papyrus.emf.facet.custom.metamodel.v0_2_0.internal.treeproxy.impl.EObjectTreeElementImpl;
 import org.eclipse.papyrus.infra.architecture.ArchitectureDomainManager;
 import org.eclipse.papyrus.infra.architecture.representation.PapyrusRepresentationKind;
 import org.eclipse.papyrus.infra.core.architecture.RepresentationKind;
@@ -83,6 +88,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.uml2.uml.Element;
 import org.eclipse.uml2.uml.Model;
+import org.eclipse.uml2.uml.NamedElement;
 import org.eclipse.uml2.uml.Package;
 import org.eclipse.uml2.uml.Stereotype;
 import org.eclipse.uml2.uml.UMLPackage;
@@ -135,7 +141,9 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			PapyrusMultiDiagramEditor papyrusEditor = (PapyrusMultiDiagramEditor)editor;
 			try {
 				ModelSet modelSet = papyrusEditor.getServicesRegistry().getService(ModelSet.class);
-				execute(modelSet, event,(IMultiDiagramEditor) editor);
+				ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
+				
+				execute(modelSet, event,selection,(IMultiDiagramEditor) editor);
 			} catch (Exception e) {
 				throw new ExecutionException(e.getMessage(), e);
 			}
@@ -144,15 +152,18 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	}
 
 	/**
+	 * 
 	 * This is the main method for the template launcher. Executes the template
+	 * @param targetModelSet
 	 * @param event 
+	 * @param selection 
 	 * @param editor 
 	 * @throws Exception 
 	 *
 	 */
-	public void execute(ModelSet targetModelSet, ExecutionEvent event, IMultiDiagramEditor editor) throws Exception {
-
-		// Identify already available template diagrams
+	public void execute(ModelSet targetModelSet, ExecutionEvent event, ISelection selection, IMultiDiagramEditor editor) throws Exception {
+		
+		// Identify already available template diagrams7
 		ArrayList<ViewPrototype>  	representationsKinds=initializeDiagramCategories(targetModelSet); // List of Available diagrams defined by the model architecture framework
 		
 		//Log list of available diagrams and its related classes
@@ -204,7 +215,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		
 		
 		/** 1- Invoke UmlScriptingEngine to generate qvto **/
-		viewModeltFilelPath=createViewModelAndHandleExceptions(pluginDiagramTemplateDiURI,  viewModeltFilelPath, (EditorPart)editor, targetModelSet);
+		viewModeltFilelPath=createViewModelAndHandleExceptions(pluginDiagramTemplateDiURI,  viewModeltFilelPath, (EditorPart)editor, targetModelSet,selection);
 			
 		/** 2-Cada paquete <<ViewContainer>> debería contener un solo diagrama **/
 		Resource resource = targetModelSet.getResource(URI.createFileURI(viewModeltFilelPath.getPath()), true);
@@ -253,9 +264,9 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	}
 
 	public File createViewModelAndHandleExceptions(URI pluginDiagramTemplateDiURI, File templateResultFilePath,
-			EditorPart editor, ModelSet targetModelSet) {
+			EditorPart editor, ModelSet targetModelSet, ISelection selection) {
 		try {
-			return createViewModel(pluginDiagramTemplateDiURI,  templateResultFilePath,  editor, targetModelSet);
+			return createViewModel(pluginDiagramTemplateDiURI,  templateResultFilePath,  editor, targetModelSet,selection);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -311,10 +322,11 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * @param templateResultFilelPath
 	 * @param editor
 	 * @param modelSet
+	 * @param selection 
 	 * @return
 	 * @throws Exception
 	 */
-	public File createViewModel(Object pluginDiagramTemplateDiURI, File templateResultFilelPath, EditorPart editor, ResourceSetImpl modelSet) throws Exception {
+	public File createViewModel(Object pluginDiagramTemplateDiURI, File templateResultFilelPath, EditorPart editor, ResourceSetImpl modelSet, ISelection selection) throws Exception {
 		TemplateProcessor adapter=new ScriptingEngineTemplateProcessor();
 		
 		String workspacePath=ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
@@ -331,10 +343,41 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 				targetUMLResource=modelSetResource;
 		}
 		
-		templateResultFilelPath=adapter.process(templateUML,modelSet,targetUMLResource, templateResultFilelPath);
+		//Transform selection tree path to ocl expression
+		StringBuffer selectionOclQuery=new StringBuffer();
+
+		for (TreePath path : ((TreeSelection)selection).getPaths()) {
+			selectionOclQuery.append(treePath2OCL(path));
+			selectionOclQuery.append("}");
+		}
+		
+		//Configure and invoke the uml-scripting-engine
+		templateResultFilelPath=adapter.process(templateUML,modelSet,targetUMLResource, templateResultFilelPath,"params#Sequence(OclAny)#"+selectionOclQuery.toString());
 
 		return templateResultFilelPath;
 		
+	}
+
+	/**
+	 * Transforms a Papyrus Model explorer path to a OCL query expression for uml scripting engine
+	 * @param path
+	 * @return
+	 */
+	private String treePath2OCL(TreePath path) {
+		StringBuffer selectionOclQuery = new StringBuffer();
+		selectionOclQuery.append("{");
+		for (int i=0;i< path.getSegmentCount();i++) {
+			if(i==0) 
+				selectionOclQuery.append("model");
+			else {
+				selectionOclQuery.append(".ownedElement->any(e | e.oclAsType(NamedElement).name=\""+(((NamedElement)((EObjectTreeElementImpl)path.getSegment(i)).getEObject()).getName())+"\")");
+			}
+			if(i==path.getSegmentCount()-1) {
+				selectionOclQuery.append(".oclAsType("+((EObjectTreeElementImpl)path.getSegment(i)).getEObject().eClass().getName()+")");
+			}
+		}
+		
+		return selectionOclQuery.toString();
 	}
 
 	private Diagram getDiagramByName(Resource modelSetNotation, String name) {
