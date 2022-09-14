@@ -126,13 +126,21 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 		//Para que BSF funcione en eclipse hay que modificar los classloaders
 		ClassLoader ccld = Thread.currentThread().getContextClassLoader();
 		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+		
+		File qvto=null;
+		
 		//compilamos
-		File qvto=runCompile(templateUMLPath, params);
-		//restauramos el classloader
-		Thread.currentThread().setContextClassLoader(ccld);
-
+		try {
+			qvto=runCompile(templateUMLPath, params);
+		}finally {
+			//restauramos el classloader
+			Thread.currentThread().setContextClassLoader(ccld);
+		}
 
 		runTransform(qvto, INPUT, resourceSet);
+		
+
+		
 
 		return templateResultFilelPath;
 		
