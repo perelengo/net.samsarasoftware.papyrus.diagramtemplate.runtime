@@ -347,12 +347,13 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		StringBuffer selectionOclQuery=new StringBuffer();
 
 		for (TreePath path : ((TreeSelection)selection).getPaths()) {
+			selectionOclQuery.append("{");
 			selectionOclQuery.append(treePath2OCL(path));
 			selectionOclQuery.append("}");
 		}
 		
 		//Configure and invoke the uml-scripting-engine
-		templateResultFilelPath=adapter.process(templateUML,modelSet,targetUMLResource, templateResultFilelPath,"params#Sequence(OclAny)#"+selectionOclQuery.toString());
+		templateResultFilelPath=adapter.process(templateUML,modelSet,targetUMLResource, templateResultFilelPath,"selection#Sequence(OclAny)#"+selectionOclQuery.toString());
 
 		return templateResultFilelPath;
 		
@@ -365,7 +366,6 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 */
 	private String treePath2OCL(TreePath path) {
 		StringBuffer selectionOclQuery = new StringBuffer();
-		selectionOclQuery.append("{");
 		for (int i=0;i< path.getSegmentCount();i++) {
 			if(i==0) 
 				selectionOclQuery.append("model");
@@ -437,7 +437,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 
 										// Retrieve the selection to show for this diagram
 										Object selection = diagramsMapping.get(pageID);
-										addElementsFor((EObject) selection, (DiagramEditor) activeEditor, diagramEditPart);
+										addElementsFor((EObject) selection, (DiagramEditor) activeEditor, diagramEditPart,diagramEditPart);
 
 										// Arrange all recursively
 										arrangeRecursively(activeEditor,diagramEditPart,editingDomain);
@@ -470,14 +470,14 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * @param editPartToShowIn
 	 *            the editPart to show elements in
 	 */
-	protected void addElementsFor(EObject selection, DiagramEditor activeEditor, EditPart editPartToShowIn) {
+	protected void addElementsFor(EObject selection, DiagramEditor activeEditor, EditPart editPartToShowIn, EditPart diagramEditPart) {
 		// Go through the SelectionRef
 		EList<EObject> it = ((EObject)selection).eContents();
 		
 		for (EObject eObject : it) {
 
 			
-			EditPart actualEditPart = showElementIn(eObject, activeEditor, editPartToShowIn, 0);
+			EditPart actualEditPart = showElementIn(eObject, activeEditor, editPartToShowIn, diagramEditPart);
 			
 			//Esto funciona
 			//Stereotype st=((Element) eObject).getAppliedStereotype("modelview::ViewOf");
@@ -485,11 +485,11 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			//processRecursively(actualEditPart, eObject,  activeEditor,resolved);
 			
 			//Esto funciona igual y es más simple
-			addElementsFor(eObject, activeEditor, actualEditPart);
+			addElementsFor(eObject, activeEditor, actualEditPart,diagramEditPart);
 
 		}
 	}
-	protected void processRecursively(EditPart actualEditPart, EObject elementToShow, DiagramEditor activeEditor, EObject container, List<View> elementProcessed) {
+	protected void processRecursively(EditPart actualEditPart, EditPart modelEditPart,EObject elementToShow, DiagramEditor activeEditor, EObject container, List<View> elementProcessed) {
 
 		// Guess which of the View is the new one
 		EditPartViewer viewer = actualEditPart.getViewer();
@@ -537,7 +537,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 						// Last we must be sure that it is really new one
 						if (!elementProcessed.contains(view)) { editPart.resolveSemanticElement();
 							// We can process it
-							addElementsFor(elementToShow, activeEditor, editPart);
+							addElementsFor(elementToShow, activeEditor, editPart,modelEditPart);
 
 							// FIXME we may need to add all new elements as processed
 							// Record that it is processed
@@ -584,7 +584,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * @return
 	 * 		the editPart in which the element has been actually added
 	 */
-	protected EditPart showElementIn(EObject elementToShow, DiagramEditor activeEditor, EditPart editPart, int position) {
+	protected EditPart showElementIn(EObject elementToShow, DiagramEditor activeEditor, EditPart editPart, EditPart diagramEditPart) {
 		EditPart returnEditPart = null;
 
 		if (
@@ -594,97 +594,108 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			DropObjectsRequest dropObjectsRequest = new DropObjectsRequest();
 			ArrayList<Element> list = new ArrayList<Element>();
 			Stereotype st=((Element) elementToShow).getAppliedStereotype("modelview::ViewOf");
-			Element resolved=(Element) ((Element) elementToShow).getValue(st, "relatedElement");
-			list.add(resolved);
-			dropObjectsRequest.setObjects(list);
-			dropObjectsRequest.setLocation(new Point(40 , 40 ));
 			
-			Command commandDrop = editPart.getCommand(dropObjectsRequest);
+			returnEditPart = editPart;
 			
-			boolean processChildren = false;
-			if (commandDrop == null) {
-				processChildren = true;
-			} else {
-				if (commandDrop.canExecute()) {
-					activeEditor.getDiagramEditDomain().getDiagramCommandStack().execute(commandDrop);
-					
-					
-					((GraphicalEditPart)editPart).refresh();
-					
-					//Buscamos el editPart creado
-					returnEditPart = editPart;
+			if(st!=null) {
+				Element resolved=(Element) ((Element) elementToShow).getValue(st, "relatedElement");
+				list.add(resolved);
+				dropObjectsRequest.setObjects(list);
+				dropObjectsRequest.setLocation(new Point(40 , 40 ));
+				
+				//Not all elements' parent may have the ViewOf stereotype, in this case we drop the elementToShow in the diagramEditPart
+				Command commandDrop = null;
+				if(((Element) elementToShow).getOwner().getAppliedStereotype("modelview::ViewOf")==null) {
+					commandDrop=diagramEditPart.getCommand(dropObjectsRequest);
+				}else {
+					commandDrop=editPart.getCommand(dropObjectsRequest);
+				}
+				
+				boolean processChildren = false;
+				if (commandDrop == null) {
+					processChildren = true;
+				} else {
+					if (commandDrop.canExecute()) {
+						activeEditor.getDiagramEditDomain().getDiagramCommandStack().execute(commandDrop);
+						
+						
+						((GraphicalEditPart)editPart).refresh();
+						
+						//Buscamos el editPart creado
+						ArrayList<EditPart> childrenList = new ArrayList<EditPart>();
+						findAllChildren(childrenList, editPart);
+						for (Object child : childrenList) {
+							if (child instanceof GraphicalEditPart) {
+								if(
+										((GraphicalEditPart)child).resolveSemanticElement().eResource().getURIFragment(((GraphicalEditPart)child).resolveSemanticElement())
+									.equals(
+										resolved.eResource().getURIFragment(resolved)
+									)
+								)
+									returnEditPart=(EditPart) child;
+							}
+						}
+						
+						//((GraphicalEditPart)editPart).resolveSemanticElement();
+						//EList elementsInEditPart = ((DiagramEditPart)editPart).getNotationView().getChildren();
+	
+						//View createdView=((View)elementsInEditPart.get(elementsInEditPart.size()-1));
+						//Element element = (Element) createdView.getElement();
+						
+	//					for (Object curr : elementsInEditPart) {
+	//						if(((Element)((View)curr).getElement()).getOwner().equals(container)) {
+	//							((View)createdView.eContainer()).removeChild(createdView);
+	//							((View)curr).insertChild(createdView);
+	//						}
+	//					}
+						/**
+						
+	//					((editPart).getViewer()).getEditPartRegistry().get(
+	//							org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0)
+	//					);
+	//					
+	//					org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.findEditParts(
+	//							(View)((Diagram)org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0).eContainer()).getChildren().get(1)
+	//							);
+	//					((GraphicalViewer)((GraphicalEditPart)editPart).getViewer()).findObjectAt(new Point(10 * (position +1), 10 * (position+1)))
+	//					((GraphicalEditPart)editPart.getTargetEditPart(dropObjectsRequest)).resolveSemanticElement();
+						//((GraphicalViewer)((GraphicalEditPart)editPart).getViewer()).getEditPartRegistry();
+						//((Diagram)org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0).eContainer()).getChildren();
+						//org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getAllEditParts(editPart)
+						 * 
+						 * 
+						 */
+					} else {
+						processChildren = true;
+					}
+				}
+				
+				if (processChildren) {
+					// try to add to one of its children
+					boolean found = false;
+
 					ArrayList<EditPart> childrenList = new ArrayList<EditPart>();
 					findAllChildren(childrenList, editPart);
 					for (Object child : childrenList) {
-						if (child instanceof GraphicalEditPart) {
-							if(
-									((GraphicalEditPart)child).resolveSemanticElement().eResource().getURIFragment(((GraphicalEditPart)child).resolveSemanticElement())
-								.equals(
-									resolved.eResource().getURIFragment(resolved)
-								)
-							)
-								returnEditPart=(EditPart) child;
-						}
-					}
-					
-					//((GraphicalEditPart)editPart).resolveSemanticElement();
-					//EList elementsInEditPart = ((DiagramEditPart)editPart).getNotationView().getChildren();
-
-					//View createdView=((View)elementsInEditPart.get(elementsInEditPart.size()-1));
-					//Element element = (Element) createdView.getElement();
-					
-//					for (Object curr : elementsInEditPart) {
-//						if(((Element)((View)curr).getElement()).getOwner().equals(container)) {
-//							((View)createdView.eContainer()).removeChild(createdView);
-//							((View)curr).insertChild(createdView);
-//						}
-//					}
-					/**
-					
-//					((editPart).getViewer()).getEditPartRegistry().get(
-//							org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0)
-//					);
-//					
-//					org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.findEditParts(
-//							(View)((Diagram)org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0).eContainer()).getChildren().get(1)
-//							);
-//					((GraphicalViewer)((GraphicalEditPart)editPart).getViewer()).findObjectAt(new Point(10 * (position +1), 10 * (position+1)))
-//					((GraphicalEditPart)editPart.getTargetEditPart(dropObjectsRequest)).resolveSemanticElement();
-					//((GraphicalViewer)((GraphicalEditPart)editPart).getViewer()).getEditPartRegistry();
-					//((Diagram)org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0).eContainer()).getChildren();
-					//org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getAllEditParts(editPart)
-					 * 
-					 * 
-					 */
-				} else {
-					processChildren = true;
-				}
-			}
-
-			if (processChildren) {
-				// try to add to one of its children
-				boolean found = false;
-
-				ArrayList<EditPart> childrenList = new ArrayList<EditPart>();
-				findAllChildren(childrenList, editPart);
-				for (Object child : childrenList) {
-					if (child instanceof EditPart) {
-						Command commandDropChild = ((EditPart) child).getCommand(dropObjectsRequest);
-						if (commandDropChild != null) {
-							if (commandDropChild.canExecute()) {
-								activeEditor.getDiagramEditDomain().getDiagramCommandStack().execute(commandDropChild);
-								found = true;
-								((GraphicalEditPart)child).refresh();
-								returnEditPart = (EditPart) child;
-								break;
+						if (child instanceof EditPart) {
+							Command commandDropChild = ((EditPart) child).getCommand(dropObjectsRequest);
+							if (commandDropChild != null) {
+								if (commandDropChild.canExecute()) {
+									activeEditor.getDiagramEditDomain().getDiagramCommandStack().execute(commandDropChild);
+									found = true;
+									((GraphicalEditPart)child).refresh();
+									returnEditPart = (EditPart) child;
+									break;
+								}
 							}
 						}
 					}
-				}
-				if (!found) {
-					returnEditPart = editPart;
+					if (!found) {
+						returnEditPart = editPart;
+					}
 				}
 			}
+			
 		}
 
 		
