@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Require-Bundle: net.samsarasoftware.papyrus.diagramtemplate.runtime;bundle-version="1.2.1";visibility:=reexport,
+Require-Bundle: net.samsarasoftware.papyrus.diagramtemplate.runtime;bundle-version="1.0.0";visibility:=reexport,
  org.eclipse.papyrus.infra.architecture;bundle-version="3.1.0";visibility:=reexport,
  org.eclipse.papyrus.infra.core.architecture;bundle-version="3.1.0";visibility:=reexport,
  org.eclipse.papyrus.infra.viewpoints.policy;bundle-version="4.0.0";visibility:=reexport,
@@ -41,7 +41,7 @@ Require-Bundle: net.samsarasoftware.papyrus.diagramtemplate.runtime;bundle-versi
 Export-Package: net.samsarasoftware.papyrus.diagramtemplate.packageclassesdiagram
 Bundle-Vendor: %providerName
 Bundle-ActivationPolicy: lazy
-Bundle-Version: 0.0.1.qualifier
+Bundle-Version: 1.0.0.qualifier
 Bundle-Localization: plugin
 Bundle-Name: %pluginName
 Bundle-Activator: net.samsarasoftware.papyrus.diagramtemplate.packageclassesdiagram.plugin.PackageClassesPlugin$Implementation

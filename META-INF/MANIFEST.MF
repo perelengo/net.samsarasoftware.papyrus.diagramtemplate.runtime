@@ -46,7 +46,7 @@ Bundle-ClassPath: .,
  lib/rhino-1.7.12.jar,
  lib/uml-scripting-engine-0.3.0-SNAPSHOT.jar,
  lib/commons-logging-1.0.4.jar
-Bundle-Version: 1.2.1.qualifier
+Bundle-Version: 1.0.0.qualifier
 Bundle-Localization: plugin
 Bundle-Name: %pluginName
 Bundle-Activator: net.samsarasoftware.papyrus.diagramtemplate.runtime.plugin.DiagramTemplateEditorPlugin$Implementation
