@@ -9,6 +9,7 @@
 -->
 
 <plugin>
+<!--
 <extension
       point="org.eclipse.ui.commands">
    <command
@@ -18,7 +19,6 @@
       	
    </command>
 </extension>
-<!--
 <extension
       point="org.eclipse.ui.menus">
    <menuContribution
@@ -36,4 +36,19 @@
    </menuContribution>
 </extension>
 -->
+
+   <extension point="org.eclipse.uml2.uml.dynamic_package">
+		<profile
+			uri="http://www.samsarasoftware.net/modelview.profile"
+			location="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_NPYckDJ8EeuNR60Z_jZTgw">
+      </profile>
+   </extension>
+   <extension point="org.eclipse.papyrus.uml.extensionpoints.UMLProfile">
+		<profile
+			name="uml2qvto"
+			uri="http://www.samsarasoftware.net/modelview.profile"
+			path="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_wiD2ICsgEeuPkNCMp8sB_w">
+      </profile>
+   </extension>
+
 </plugin>
