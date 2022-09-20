@@ -34,12 +34,10 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.transaction.RecordingCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
-import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eclipse.m2m.qvt.oml.ModelExtent;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -62,7 +60,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 	}
 	
 	@Override
-	public File process(String templateUMLPath, ResourceSet resourceSet,Resource targetUML, File templateResultFilelPath, String params) throws Exception {
+	public File process(String templateUMLPath, ResourceSet resourceSet,Resource targetUML, File templateResultFilelPath, String params, TransactionalEditingDomain editingDomain) throws Exception {
 
 		if(templateResultFilelPath==null) {
 			templateResultFilelPath=File.createTempFile(templateUMLPath.substring(0,templateUMLPath.lastIndexOf("."))+"_transform",".uml");
@@ -137,7 +135,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 			Thread.currentThread().setContextClassLoader(ccld);
 		}
 
-		runTransform(qvto, INPUT, resourceSet);
+		runTransform(qvto, INPUT, resourceSet, editingDomain);
 		
 
 		
@@ -174,7 +172,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 		}
 	}
 
-	protected void runTransform(File qvto, List<? extends ModelExtent> INPUT, ResourceSet resourceSet) throws Exception {
+	protected void runTransform(File qvto, List<? extends ModelExtent> INPUT, ResourceSet resourceSet,TransactionalEditingDomain editingDomain) throws Exception {
 		try {
 			ModelExtent editedResource = ((ModelExtent)INPUT.get(INPUT.size()-1));
 			
@@ -183,9 +181,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 				&& editedResource instanceof Param )
 				((Param)editedResource).initialize(resourceSet);
 			
-			EObject editedDomainRootObject=editedResource.getContents().get(0);
-			TransactionalEditingDomain domain = TransactionUtil.getEditingDomain(editedDomainRootObject);
-		    domain.getCommandStack().execute(new RecordingCommand(domain) {
+			editingDomain.getCommandStack().execute(new RecordingCommand(editingDomain) {
 
 		        @Override
 		        protected void doExecute() {

@@ -63,7 +63,7 @@ public class QvtoTemplateProcessor implements TemplateProcessor{
 	
 	
 	@Override
-	public File process(String templateQvtoPath, ResourceSet resourceSet,Resource targetUML, File templateResultFilelPath, String params) throws Exception {
+	public File process(String templateQvtoPath, ResourceSet resourceSet,Resource targetUML, File templateResultFilelPath, String params, TransactionalEditingDomain editingDomain) throws Exception {
 
 		if(templateResultFilelPath==null) {
 			templateResultFilelPath=File.createTempFile(templateQvtoPath.substring(0,templateQvtoPath.lastIndexOf("."))+"_transform",".uml");

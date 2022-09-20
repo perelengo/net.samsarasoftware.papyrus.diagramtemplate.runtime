@@ -24,10 +24,11 @@ import java.io.File;
 
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.transaction.TransactionalEditingDomain;
 
 public interface TemplateProcessor {
 
 
-	public File process(String templatePath, ResourceSet resourceSet, Resource targetUML, File templateResultFilelPath, String string)
+	public File process(String templatePath, ResourceSet resourceSet, Resource targetUML, File templateResultFilelPath, String string, TransactionalEditingDomain editingDomain)
 			throws Exception;
 }
