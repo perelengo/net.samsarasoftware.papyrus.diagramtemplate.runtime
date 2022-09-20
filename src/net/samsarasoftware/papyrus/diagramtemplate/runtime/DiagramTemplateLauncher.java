@@ -23,6 +23,7 @@ limitations under the License.
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,9 +36,22 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.draw2d.geometry.Point;
+import org.eclipse.elk.core.LayoutConfigurator;
+import org.eclipse.elk.core.math.ElkPadding;
+import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.EdgeRouting;
+import org.eclipse.elk.core.options.SizeConstraint;
+import org.eclipse.elk.core.options.SizeOptions;
 import org.eclipse.elk.core.service.DiagramLayoutEngine;
+import org.eclipse.elk.core.service.ILayoutListener;
+import org.eclipse.elk.core.service.LayoutConnectorsService;
 import org.eclipse.elk.core.service.DiagramLayoutEngine.Parameters;
+import org.eclipse.elk.core.service.LayoutMapping;
+import org.eclipse.elk.core.util.AlgorithmFactory;
+import org.eclipse.elk.core.util.IElkProgressMonitor;
+import org.eclipse.elk.graph.ElkGraphElement;
+import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
@@ -82,17 +96,26 @@ import org.eclipse.papyrus.infra.core.utils.DiResourceSet;
 import org.eclipse.papyrus.infra.gmfdiag.common.model.NotationUtils;
 import org.eclipse.papyrus.infra.ui.editor.IMultiDiagramEditor;
 import org.eclipse.papyrus.infra.viewpoints.policy.ViewPrototype;
+import org.eclipse.papyrus.uml.diagram.clazz.edit.parts.PackageEditPart;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
+import org.eclipse.uml2.uml.Class;
+import org.eclipse.uml2.uml.Classifier;
+import org.eclipse.uml2.uml.Component;
 import org.eclipse.uml2.uml.Element;
+import org.eclipse.uml2.uml.Enumeration;
+import org.eclipse.uml2.uml.Interface;
 import org.eclipse.uml2.uml.Model;
 import org.eclipse.uml2.uml.NamedElement;
 import org.eclipse.uml2.uml.Package;
 import org.eclipse.uml2.uml.Stereotype;
 import org.eclipse.uml2.uml.UMLPackage;
 import org.eclipse.uml2.uml.resource.UMLResource;
+
+import com.google.common.collect.BiMap;
+import com.google.inject.Injector;
 
 public class DiagramTemplateLauncher extends AbstractHandler {
 
@@ -215,7 +238,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		
 		
 		/** 1- Invoke UmlScriptingEngine to generate qvto **/
-		viewModeltFilelPath=createViewModelAndHandleExceptions(pluginDiagramTemplateDiURI,  viewModeltFilelPath, (EditorPart)editor, targetModelSet,selection);
+		viewModeltFilelPath=createViewModelAndHandleExceptions(pluginDiagramTemplateDiURI,  viewModeltFilelPath, editor, targetModelSet,selection);
 			
 		/** 2-Cada paquete <<ViewContainer>> debería contener un solo diagrama **/
 		Resource resource = targetModelSet.getResource(URI.createFileURI(viewModeltFilelPath.getPath()), true);
@@ -225,7 +248,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		createDiagramsAndHandleExceptions(templateResultFilelPathModel, targetModelSet, targetModelSetNotation, representationsKinds, pluginDiagramTemplateDiagram, diagramsInInputModelResource, diagramsCreated, diagramsToUpdate, diagramsMapping);
 		
 		// Save the resource
-		saveModelSetAndHandleExceptions(targetModelSet);
+		//saveModelSetAndHandleExceptions(targetModelSet);
 		
 		/** Fill diagrams **/
 		fillDiagramAndHandleExceptions(editor, pluginDiagramTemplateModelSet, viewModeltFilelPath, diagramsCreated,diagramsToUpdate,diagramsMapping);
@@ -264,7 +287,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	}
 
 	public File createViewModelAndHandleExceptions(URI pluginDiagramTemplateDiURI, File templateResultFilePath,
-			EditorPart editor, ModelSet targetModelSet, ISelection selection) {
+			IMultiDiagramEditor editor, ModelSet targetModelSet, ISelection selection) {
 		try {
 			return createViewModel(pluginDiagramTemplateDiURI,  templateResultFilePath,  editor, targetModelSet,selection);
 		} catch (Exception e) {
@@ -282,7 +305,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 
 		String viewContainersQuery="self.oclAsType(Model).allOwnedElements()->select(e | not e.oclAsType(Element).getAppliedStereotype('modelview::ViewContainer').oclIsUndefined())";
 		HashSet viewContainers = (HashSet) oclTool.evaluateQuery(viewContainersQuery,templateResultFilelPathModel);
-
+//
 		//foreach viewContainer
 		for (Object containerObject: viewContainers) {
 			org.eclipse.uml2.uml.Package viewContainer=(Package) containerObject;
@@ -320,13 +343,13 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * Execute the UML-Scripting-Engine template to generate the uml with viewModel stereotypes applied
 	 * @param pluginDiagramTemplateDiURI
 	 * @param templateResultFilelPath
-	 * @param editor
+//	 * @param editor
 	 * @param modelSet
 	 * @param selection 
 	 * @return
 	 * @throws Exception
 	 */
-	public File createViewModel(Object pluginDiagramTemplateDiURI, File templateResultFilelPath, EditorPart editor, ResourceSetImpl modelSet, ISelection selection) throws Exception {
+	public File createViewModel(Object pluginDiagramTemplateDiURI, File templateResultFilelPath, IMultiDiagramEditor  editorPart, ResourceSetImpl modelSet, ISelection selection) throws Exception {
 		TemplateProcessor adapter=new ScriptingEngineTemplateProcessor();
 		
 		String workspacePath=ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
@@ -337,7 +360,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		templateUML 	= templateUML.substring(0,templateUML.length()-2)+ "uml";
 
 		Resource targetUMLResource=null;
-		String modelResourceName = editor.getEditorInput().getName().substring(0,editor.getEditorInput().getName().lastIndexOf("."));
+		String modelResourceName = editorPart.getEditorInput().getName().substring(0,editorPart.getEditorInput().getName().lastIndexOf("."));
 		for (Resource modelSetResource: modelSet.getResources()) {
 			if(modelSetResource instanceof UMLResource && modelSetResource.getURI().toString().endsWith(modelResourceName+".uml"))
 				targetUMLResource=modelSetResource;
@@ -353,7 +376,10 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		}
 		
 		//Configure and invoke the uml-scripting-engine
-		templateResultFilelPath=adapter.process(templateUML,modelSet,targetUMLResource, templateResultFilelPath,"selection#Sequence(OclAny)#"+selectionOclQuery.toString());
+		final ServicesRegistry services = editorPart.getServicesRegistry();
+		TransactionalEditingDomain editingDomain = services.getService(TransactionalEditingDomain.class);
+
+		templateResultFilelPath=adapter.process(templateUML,modelSet,targetUMLResource, templateResultFilelPath,"selection#Sequence(OclAny)#"+selectionOclQuery.toString(),editingDomain);
 
 		return templateResultFilelPath;
 		
@@ -363,7 +389,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * Transforms a Papyrus Model explorer path to a OCL query expression for uml scripting engine
 	 * @param path
 	 * @return
-	 */
+//	 */
 	private String treePath2OCL(TreePath path) {
 		StringBuffer selectionOclQuery = new StringBuffer();
 		for (int i=0;i< path.getSegmentCount();i++) {
@@ -422,10 +448,10 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 							String pageID = ((Diagram) pageDiagram).getName();
 							
 							if (diagramsCreated.containsKey(pageID) || diagramsToUpdate.containsKey(pageID)) {
-
+								//Page need to be open otherwise diagramEditPart will be null
 								pageManager.openPage(pageDiagram);
 								IEditorPart activeEditor = ((PapyrusMultiDiagramEditor) editor).getActiveEditor();
-
+								
 								if (activeEditor instanceof DiagramEditor) {
 							
 									// Get the GraphicalViewer for this diagram
@@ -440,7 +466,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 										addElementsFor((EObject) selection, (DiagramEditor) activeEditor, diagramEditPart,diagramEditPart);
 
 										// Arrange all recursively
-										arrangeRecursively(activeEditor,diagramEditPart,editingDomain);
+										arrangeRecursively(activeEditor,diagramEditPart,editingDomain,diagramEditPart);
 									}
 
 									// This page is processed now (may be not necessary)
@@ -740,32 +766,72 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * Helper method used to arrange recursively editparts
 	 * @param activeEditor 
 	 * @param editingDomain 
+	 * @param diagramEditPart 
 	 *
 	 * @param editpart
 	 *            the editpart to process
 	 */
-	protected void arrangeRecursively(IEditorPart activeEditor, EditPart editPart, TransactionalEditingDomain editingDomain) {
-
-		//configure ELK
-		Parameters params = new Parameters();
-        params.getGlobalSettings()
-            .setProperty(CoreOptions.ANIMATE, false)
-            .setProperty(CoreOptions.PROGRESS_BAR, false)
-            .setProperty(CoreOptions.LAYOUT_ANCESTORS, false)
-            .setProperty(CoreOptions.ZOOM_TO_FIT, false);
-        
-
-		//First round to layout
-        DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, editPart,  params);
-        		
-         
-        
-		for (Object element : editPart.getChildren()) {
-			if (element instanceof EditPart) {
-				DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, editPart,  params);
-				arrangeRecursively(activeEditor,(EditPart) element, editingDomain);
-			}
-		}
+	protected void arrangeRecursively(IEditorPart activeEditor, EditPart editPart, TransactionalEditingDomain editingDomain, DiagramEditPart diagramEditPart) {
+			//configure ELK https://www.eclipse.org/elk/documentation/tooldevelopers/usingeclipselayout/advancedconfiguration.html
+			Parameters params = new Parameters();
+	        LayoutConfigurator config=new LayoutConfigurator();
+	        	params.getGlobalSettings()
+	        	.setProperty(CoreOptions.ANIMATE, false)
+	            .setProperty(CoreOptions.PROGRESS_BAR, false)
+	            .setProperty(CoreOptions.LAYOUT_ANCESTORS, false)
+	        	;
+	            
+	        	config.configure(ElkNode.class)
+	        	.setProperty(CoreOptions.EDGE_ROUTING,EdgeRouting.POLYLINE)
+	            .setProperty(CoreOptions.NODE_SIZE_OPTIONS, EnumSet.of(SizeOptions.COMPUTE_PADDING,SizeOptions.MINIMUM_SIZE_ACCOUNTS_FOR_PADDING,SizeOptions.UNIFORM_PORT_SPACING,SizeOptions.ASYMMETRICAL))
+	            .setProperty(CoreOptions.PADDING, new ElkPadding(100d, 100d, 100d, 100d))
+	            .setProperty(CoreOptions.SPACING_COMMENT_COMMENT, 100d)
+	            .setProperty(CoreOptions.SPACING_COMMENT_NODE, 100d)
+	            .setProperty(CoreOptions.SPACING_COMPONENT_COMPONENT, 100d)
+	            .setProperty(CoreOptions.SPACING_EDGE_EDGE, 100d)
+	            .setProperty(CoreOptions.SPACING_EDGE_LABEL, 100d)
+	            .setProperty(CoreOptions.SPACING_EDGE_NODE, 100d)
+	            .setProperty(CoreOptions.SPACING_LABEL_LABEL, 100d)
+	            .setProperty(CoreOptions.SPACING_LABEL_NODE, 100d)
+	            .setProperty(CoreOptions.SPACING_LABEL_PORT, 100d)
+	            .setProperty(CoreOptions.SPACING_NODE_NODE, 100d)
+	            .setProperty(CoreOptions.SPACING_NODE_SELF_LOOP, 100d)
+	            .setProperty(CoreOptions.SPACING_PORT_PORT, 100d);
+	            
+	        	params.addLayoutRun(config);
+	        	
+	        	/**
+	        	 * We can't find a way to make layered algorithm layout classes and packages as different sizes, so we have to configure each ELKElement whose
+	        	 * UML related element is instance of classifier.
+	        	 *
+	        	 * To be able to configure each node separately, we have to add a layout listener to be able to have access to the LayoutMapping
+	        	 * Then add payout runs to the params foreach of the classifier nodes
+	        	 **/
+	        	 LayoutConnectorsService.getInstance().addLayoutListener(new ILayoutListener() {
+					
+					@Override
+					public void layoutDone(LayoutMapping mapping, IElkProgressMonitor progressMonitor) {
+						
+					}
+					
+					@Override
+					public void layoutAboutToStart(LayoutMapping mapping, IElkProgressMonitor progressMonitor) {
+						BiMap<ElkGraphElement, Object> map = (mapping.getGraphMap());
+						for (ElkGraphElement elkElement : map.keySet()) {
+							EObject semantic = ((GraphicalEditPart)map.get(elkElement)).resolveSemanticElement();
+							if(semantic instanceof Classifier) {
+								LayoutConfigurator config2=new LayoutConfigurator();
+								config2.configure(elkElement)
+								.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.of(SizeConstraint.MINIMUM_SIZE,SizeConstraint.NODE_LABELS,SizeConstraint.PORT_LABELS,SizeConstraint.PORTS))
+					            .setProperty(CoreOptions.NODE_SIZE_MINIMUM,new KVector(100,100));
+								params.addLayoutRun(config2);
+							}
+						}
+					}
+				});
+	        	 
+	        	DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, editPart,  params);
+	        	
 	}
 
 	/**
