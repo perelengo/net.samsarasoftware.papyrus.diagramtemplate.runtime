@@ -773,7 +773,9 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	            
 	        	config.configure(ElkNode.class)
 	        	.setProperty(CoreOptions.EDGE_ROUTING,EdgeRouting.POLYLINE)
-	            .setProperty(CoreOptions.NODE_SIZE_OPTIONS, EnumSet.of(SizeOptions.COMPUTE_PADDING,SizeOptions.MINIMUM_SIZE_ACCOUNTS_FOR_PADDING,SizeOptions.UNIFORM_PORT_SPACING,SizeOptions.ASYMMETRICAL))
+	        	.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.of(SizeConstraint.MINIMUM_SIZE,SizeConstraint.NODE_LABELS,SizeConstraint.PORT_LABELS,SizeConstraint.PORTS))
+	            .setProperty(CoreOptions.NODE_SIZE_MINIMUM,new KVector(100,100))
+				.setProperty(CoreOptions.NODE_SIZE_OPTIONS, EnumSet.of(SizeOptions.COMPUTE_PADDING,SizeOptions.MINIMUM_SIZE_ACCOUNTS_FOR_PADDING,SizeOptions.UNIFORM_PORT_SPACING,SizeOptions.ASYMMETRICAL))
 	            .setProperty(CoreOptions.PADDING, new ElkPadding(100d, 100d, 100d, 100d))
 	            .setProperty(CoreOptions.SPACING_COMMENT_COMMENT, 100d)
 	            .setProperty(CoreOptions.SPACING_COMMENT_NODE, 100d)
@@ -790,36 +792,6 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	            
 	        	params.addLayoutRun(config);
 	        	
-	        	/**
-	        	 * We can't find a way to make layered algorithm layout classes and packages as different sizes, so we have to configure each ELKElement whose
-	        	 * UML related element is instance of classifier.
-	        	 *
-	        	 * To be able to configure each node separately, we have to add a layout listener to be able to have access to the LayoutMapping
-	        	 * Then add payout runs to the params foreach of the classifier nodes
-	        	 **/
-	        	 LayoutConnectorsService.getInstance().addLayoutListener(new ILayoutListener() {
-					
-					@Override
-					public void layoutDone(LayoutMapping mapping, IElkProgressMonitor progressMonitor) {
-						
-					}
-					
-					@Override
-					public void layoutAboutToStart(LayoutMapping mapping, IElkProgressMonitor progressMonitor) {
-						BiMap<ElkGraphElement, Object> map = (mapping.getGraphMap());
-						for (ElkGraphElement elkElement : map.keySet()) {
-							EObject semantic = ((GraphicalEditPart)map.get(elkElement)).resolveSemanticElement();
-							if(semantic instanceof Classifier) {
-								LayoutConfigurator config2=new LayoutConfigurator();
-								config2.configure(elkElement)
-								.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.of(SizeConstraint.MINIMUM_SIZE,SizeConstraint.NODE_LABELS,SizeConstraint.PORT_LABELS,SizeConstraint.PORTS))
-					            .setProperty(CoreOptions.NODE_SIZE_MINIMUM,new KVector(100,100));
-								params.addLayoutRun(config2);
-							}
-						}
-					}
-				});
-	        	 
 	        	DiagramLayoutEngine.invokeLayout((DiagramEditor) activeEditor, editPart,  params);
 	        	
 	}
