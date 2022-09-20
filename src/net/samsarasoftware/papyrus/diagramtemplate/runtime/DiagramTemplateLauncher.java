@@ -44,11 +44,10 @@ import org.eclipse.elk.core.options.EdgeRouting;
 import org.eclipse.elk.core.options.SizeConstraint;
 import org.eclipse.elk.core.options.SizeOptions;
 import org.eclipse.elk.core.service.DiagramLayoutEngine;
+import org.eclipse.elk.core.service.DiagramLayoutEngine.Parameters;
 import org.eclipse.elk.core.service.ILayoutListener;
 import org.eclipse.elk.core.service.LayoutConnectorsService;
-import org.eclipse.elk.core.service.DiagramLayoutEngine.Parameters;
 import org.eclipse.elk.core.service.LayoutMapping;
-import org.eclipse.elk.core.util.AlgorithmFactory;
 import org.eclipse.elk.core.util.IElkProgressMonitor;
 import org.eclipse.elk.graph.ElkGraphElement;
 import org.eclipse.elk.graph.ElkNode;
@@ -56,9 +55,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.ENamedElement;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.impl.EObjectImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -96,17 +93,11 @@ import org.eclipse.papyrus.infra.core.utils.DiResourceSet;
 import org.eclipse.papyrus.infra.gmfdiag.common.model.NotationUtils;
 import org.eclipse.papyrus.infra.ui.editor.IMultiDiagramEditor;
 import org.eclipse.papyrus.infra.viewpoints.policy.ViewPrototype;
-import org.eclipse.papyrus.uml.diagram.clazz.edit.parts.PackageEditPart;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.part.EditorPart;
-import org.eclipse.uml2.uml.Class;
 import org.eclipse.uml2.uml.Classifier;
-import org.eclipse.uml2.uml.Component;
 import org.eclipse.uml2.uml.Element;
-import org.eclipse.uml2.uml.Enumeration;
-import org.eclipse.uml2.uml.Interface;
 import org.eclipse.uml2.uml.Model;
 import org.eclipse.uml2.uml.NamedElement;
 import org.eclipse.uml2.uml.Package;
@@ -115,7 +106,6 @@ import org.eclipse.uml2.uml.UMLPackage;
 import org.eclipse.uml2.uml.resource.UMLResource;
 
 import com.google.common.collect.BiMap;
-import com.google.inject.Injector;
 
 public class DiagramTemplateLauncher extends AbstractHandler {
 
@@ -305,7 +295,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 
 		String viewContainersQuery="self.oclAsType(Model).allOwnedElements()->select(e | not e.oclAsType(Element).getAppliedStereotype('modelview::ViewContainer').oclIsUndefined())";
 		HashSet viewContainers = (HashSet) oclTool.evaluateQuery(viewContainersQuery,templateResultFilelPathModel);
-//
+
 		//foreach viewContainer
 		for (Object containerObject: viewContainers) {
 			org.eclipse.uml2.uml.Package viewContainer=(Package) containerObject;
@@ -343,7 +333,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * Execute the UML-Scripting-Engine template to generate the uml with viewModel stereotypes applied
 	 * @param pluginDiagramTemplateDiURI
 	 * @param templateResultFilelPath
-//	 * @param editor
+	 * @param editorPart
 	 * @param modelSet
 	 * @param selection 
 	 * @return
@@ -389,7 +379,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * Transforms a Papyrus Model explorer path to a OCL query expression for uml scripting engine
 	 * @param path
 	 * @return
-//	 */
+	 */
 	private String treePath2OCL(TreePath path) {
 		StringBuffer selectionOclQuery = new StringBuffer();
 		for (int i=0;i< path.getSegmentCount();i++) {
