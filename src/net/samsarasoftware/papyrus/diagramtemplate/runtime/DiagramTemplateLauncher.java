@@ -384,7 +384,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		StringBuffer selectionOclQuery = new StringBuffer();
 		for (int i=0;i< path.getSegmentCount();i++) {
 			if(i==0) 
-				selectionOclQuery.append("model");
+				selectionOclQuery.append("inModel1"); //inModel1 porque en este caso, el modelo de la selección no viene en el modelo principal
 			else {
 				selectionOclQuery.append(".ownedElement->any(e | e.oclAsType(NamedElement).name=\""+(((NamedElement)((EObjectTreeElementImpl)path.getSegment(i)).getEObject()).getName())+"\")");
 			}
