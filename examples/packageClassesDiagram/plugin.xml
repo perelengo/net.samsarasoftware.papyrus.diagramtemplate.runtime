@@ -30,13 +30,13 @@
             label="Example - Classes diagram per package using UML Scripting Engine"
             style="push"
             >
-				<!--<visibleWhen checkEnabled="false">
+				<visibleWhen checkEnabled="false">
 				   <iterate ifEmpty="false" operator="and">
 					  <adapt type="org.eclipse.emf.ecore.EObject">
-						 <instanceof  value="org.eclipse.uml2.uml.Model"/>
+						 <instanceof  value="org.eclipse.uml2.uml.Package"/>
 					  </adapt>
 				   </iterate>
-				</visibleWhen>-->            
+				</visibleWhen>            
       </command>
             </menu>
    </menuContribution>

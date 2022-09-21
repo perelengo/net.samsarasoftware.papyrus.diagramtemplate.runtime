@@ -36,19 +36,24 @@
    </menuContribution>
 </extension>
 -->
-
+<!--
    <extension point="org.eclipse.uml2.uml.dynamic_package">
 		<profile
 			uri="http://www.samsarasoftware.net/modelview.profile"
 			location="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_NPYckDJ8EeuNR60Z_jZTgw">
       </profile>
-   </extension>
+   </extension> -->
    <extension point="org.eclipse.papyrus.uml.extensionpoints.UMLProfile">
 		<profile
 			name="uml2qvto"
 			uri="http://www.samsarasoftware.net/modelview.profile"
-			path="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_wiD2ICsgEeuPkNCMp8sB_w">
+			path="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_NPYckDJ8EeuNR60Z_jZTgw">
       </profile>
    </extension>
-
+	<extension point="org.eclipse.emf.ecore.generated_package">
+   	<package 
+   		uri = "http://www.samsarasoftware.net/modelview.ecore"
+   		class = "modelview.modelviewPackage"
+   		genModel="profiles/modelview.genmodel"   	/>
+   </extension>
 </plugin>
