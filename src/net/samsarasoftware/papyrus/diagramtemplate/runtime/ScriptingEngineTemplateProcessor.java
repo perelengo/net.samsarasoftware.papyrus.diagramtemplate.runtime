@@ -116,7 +116,7 @@ public class ScriptingEngineTemplateProcessor implements TemplateProcessor{
 			
 		}
 		
-		//Siempre hay un único fichero inout que es el fichero de salida
+		//Siempre hay un único fichero inout que es el fichero para el que generamos el diagrama
 		ModelExtent viewModelExtent=new ModelExtentAdapter(targetUML);
 		INPUT.add(viewModelExtent);
 		
