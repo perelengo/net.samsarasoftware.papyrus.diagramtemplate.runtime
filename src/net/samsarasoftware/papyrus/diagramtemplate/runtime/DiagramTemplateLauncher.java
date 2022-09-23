@@ -455,7 +455,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			protected void doExecute() {
 				try {
 					IPageManager pageManager = services.getService(IPageManager.class);
-					//pageManager.closeAllOpenedPages();
+					pageManager.closeAllOpenedPages();
 
 					// Go through the diagrams available in the resource
 					for (Object pageDiagram : pageManager.allPages()) {
@@ -469,6 +469,8 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 								if(!pageManager.isOpen(pageDiagram))
 									pageManager.openPage(pageDiagram);
 								
+								pageManager.selectPage(pageDiagram);
+								
 								IEditorPart activeEditor = ((PapyrusMultiDiagramEditor) editor).getActiveEditor();
 								
 								if (activeEditor instanceof DiagramEditor) {
@@ -478,8 +480,8 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 									
 									if (result != null && result instanceof GraphicalViewer) {
 									
-										DiagramEditPart diagramEditPart = (DiagramEditPart) ((GraphicalViewer) result).getEditPartRegistry().get(pageDiagram);
-
+										EditPart diagramEditPart = (DiagramEditPart) ((GraphicalViewer) result).getEditPartRegistry().get(pageDiagram);
+										
 										// Retrieve the selection to show for this diagram
 										Object selection = diagramsMapping.get(pageID);
 										addElementsFor((EObject) selection, (DiagramEditor) activeEditor, diagramEditPart,diagramEditPart);
@@ -793,7 +795,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * @param editpart
 	 *            the editpart to process
 	 */
-	protected void arrangeRecursively(IEditorPart activeEditor, EditPart editPart, TransactionalEditingDomain editingDomain, DiagramEditPart diagramEditPart) {
+	protected void arrangeRecursively(IEditorPart activeEditor, EditPart editPart, TransactionalEditingDomain editingDomain, EditPart diagramEditPart) {
 			//configure ELK https://www.eclipse.org/elk/documentation/tooldevelopers/usingeclipselayout/advancedconfiguration.html
 			Parameters params = new Parameters();
 	        LayoutConfigurator config=new LayoutConfigurator();
