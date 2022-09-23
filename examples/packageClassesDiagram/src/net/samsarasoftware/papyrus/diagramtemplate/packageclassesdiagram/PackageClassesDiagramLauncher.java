@@ -81,7 +81,7 @@ public class PackageClassesDiagramLauncher extends DiagramTemplateLauncher {
 	 * @param editpart
 	 *            the editpart to process
 	 */
-	protected void arrangeRecursively(IEditorPart activeEditor, EditPart editPart, TransactionalEditingDomain editingDomain, DiagramEditPart diagramEditPart) {
+	protected void arrangeRecursively(IEditorPart activeEditor, EditPart editPart, TransactionalEditingDomain editingDomain, EditPart diagramEditPart) {
 			//configure ELK https://www.eclipse.org/elk/documentation/tooldevelopers/usingeclipselayout/advancedconfiguration.html
 			Parameters params = new Parameters();
 	        LayoutConfigurator config=new LayoutConfigurator();
