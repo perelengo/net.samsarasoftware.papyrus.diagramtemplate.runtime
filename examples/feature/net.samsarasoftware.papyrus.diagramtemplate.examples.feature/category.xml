@@ -3,7 +3,7 @@
    <feature id="net.samsarasoftware.papyrus.diagramtemplate.examples.feature">
       <category name="net.samsarasoftware.papyrus.diagramtemplate.examples.category"/>
    </feature>
-   <category-def name="net.samsarasoftware.papyrus.diagramtemplate.examples.category" label="Samsarasoftware diagram example templates"/>
+   <category-def name="net.samsarasoftware.papyrus.diagramtemplate.examples.category" label="Samsarasoftware diagram templates examples"/>
    <repository-reference location="https://download.eclipse.org/elk/updates/0.7.1/" enabled="true" />
    <repository-reference location="https://download.eclipse.org/releases/2022-12/" enabled="true" />
 </site>
