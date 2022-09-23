@@ -37,7 +37,8 @@ Require-Bundle: org.eclipse.papyrus.infra.architecture;bundle-version="3.1.0";vi
  org.eclipse.papyrus.uml.diagram.clazz,
  org.eclipse.papyrus.infra.emf.diagram.common;bundle-version="3.0.0",
  org.eclipse.papyrus.uml.diagram.common;bundle-version="5.0.0",
- com.google.guava
+ com.google.guava,
+ org.apache.commons.io;bundle-version="2.8.0"
 Export-Package: net.samsarasoftware.papyrus.diagramtemplate.runtime
 Bundle-Vendor: %providerName
 Bundle-ActivationPolicy: lazy
