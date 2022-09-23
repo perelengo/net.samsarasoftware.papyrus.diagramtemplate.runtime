@@ -45,7 +45,7 @@
    </extension> -->
    <extension point="org.eclipse.papyrus.uml.extensionpoints.UMLProfile">
 		<profile
-			name="uml2qvto"
+			name="modelview"
 			uri="http://www.samsarasoftware.net/modelview.profile"
 			path="platform:/plugin/com.samsarasoftware.metamodels/profiles/modelview.profile.uml#_NPYckDJ8EeuNR60Z_jZTgw">
       </profile>
