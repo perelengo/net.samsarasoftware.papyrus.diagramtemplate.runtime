@@ -21,6 +21,8 @@ limitations under the License.
  */
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -30,11 +32,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.elk.core.LayoutConfigurator;
 import org.eclipse.elk.core.math.ElkPadding;
@@ -45,11 +48,6 @@ import org.eclipse.elk.core.options.SizeConstraint;
 import org.eclipse.elk.core.options.SizeOptions;
 import org.eclipse.elk.core.service.DiagramLayoutEngine;
 import org.eclipse.elk.core.service.DiagramLayoutEngine.Parameters;
-import org.eclipse.elk.core.service.ILayoutListener;
-import org.eclipse.elk.core.service.LayoutConnectorsService;
-import org.eclipse.elk.core.service.LayoutMapping;
-import org.eclipse.elk.core.util.IElkProgressMonitor;
-import org.eclipse.elk.graph.ElkGraphElement;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.TreeIterator;
@@ -96,7 +94,6 @@ import org.eclipse.papyrus.infra.viewpoints.policy.ViewPrototype;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.uml2.uml.Classifier;
 import org.eclipse.uml2.uml.Element;
 import org.eclipse.uml2.uml.Model;
 import org.eclipse.uml2.uml.NamedElement;
@@ -104,8 +101,7 @@ import org.eclipse.uml2.uml.Package;
 import org.eclipse.uml2.uml.Stereotype;
 import org.eclipse.uml2.uml.UMLPackage;
 import org.eclipse.uml2.uml.resource.UMLResource;
-
-import com.google.common.collect.BiMap;
+import org.osgi.framework.Bundle;
 
 public class DiagramTemplateLauncher extends AbstractHandler {
 
@@ -137,7 +133,35 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 
 
 	protected  URI getTemplateURI() throws Exception {
-		return URI.createPlatformResourceURI("test/resources/script.di");
+		Bundle bundle = Platform.getBundle(this.getClass().getPackageName());
+		InputStream diIs=null;
+		FileOutputStream diOs=null;
+		InputStream notIs=null;
+		FileOutputStream  notOs=null;
+		InputStream umlIs=null;
+		FileOutputStream  umlOs=null;
+		
+		diIs=bundle.getEntry("resources/script.di").openStream();
+		notIs=bundle.getEntry("resources/script.notation").openStream();
+		umlIs=bundle.getEntry("resources/script.uml").openStream();
+
+		File diFile=new File(System.getProperty("java.io.tmpdir")+((System.getProperty("java.io.tmpdir").endsWith(File.separator))?"":File.separator)+"_script.di");
+		File notFile=new File(diFile.getAbsolutePath().substring(0,diFile.getAbsolutePath().length()-2)+"notation");
+		File umlFile=new File(diFile.getAbsolutePath().substring(0,diFile.getAbsolutePath().length()-2)+"uml");
+		
+		diFile.deleteOnExit();
+		notFile.deleteOnExit();
+		umlFile.deleteOnExit();
+
+		diOs=new FileOutputStream(diFile);
+		notOs=new FileOutputStream(notFile);
+		umlOs=new FileOutputStream(umlFile);
+		
+		IOUtils.copy(diIs, diOs);
+		IOUtils.copy(notIs, notOs);
+		IOUtils.copy(umlIs, umlOs);
+
+		return URI.createFileURI(diFile.getAbsolutePath());	
 	}
 
 	public File getViewModelFilePath() {
@@ -158,6 +182,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 				
 				execute(modelSet, event,selection,(IMultiDiagramEditor) editor);
 			} catch (Exception e) {
+				e.printStackTrace(System.out);
 				throw new ExecutionException(e.getMessage(), e);
 			}
 		}
@@ -201,7 +226,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			targetModelSetRegistry.add(ModelSet.class, Integer.MAX_VALUE, pluginDiagramTemplateModelSet);
 			targetModelSetRegistry.startRegistry();
 		} catch (ServiceException ex) {
-			// Ignore errors
+			ex.printStackTrace(System.out);
 		}
 
 		
@@ -248,7 +273,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			targetModelSet.getResource(URI.createFileURI(viewModeltFilelPath.getPath()),true).unload();
 			targetModelSetRegistry.disposeRegistry();
 		} catch (ServiceException ex) {
-			// Ignore
+			ex.printStackTrace(System.out);
 		}		
 	}
 
@@ -256,7 +281,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		try {
 			fillDiagram(editor, modelSet, templateResultFilelPath, diagramsCreated, diagramsToUpdate, diagramsMapping);
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(System.out);
 		}		
 	}
 
@@ -264,7 +289,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		try {
 			saveModelSet(modelSet);
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(System.out);
 		}
 	}
 
@@ -272,7 +297,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		try {
 			createDiagrams(templateResultFilelPathModel, modelSet, modelSetNotation, representationsKinds, templateDiagram, diagramsInInputModelResource, diagramsCreated, diagramsToUpdate, diagramsMapping);
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(System.out);
 		}
 	}
 
@@ -281,7 +306,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		try {
 			return createViewModel(pluginDiagramTemplateDiURI,  templateResultFilePath,  editor, targetModelSet,selection);
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -297,6 +322,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		HashSet viewContainers = (HashSet) oclTool.evaluateQuery(viewContainersQuery,templateResultFilelPathModel);
 
 		//foreach viewContainer
+		System.out.println("createDiagrams found "+viewContainers.size()+" viewContainers");
 		for (Object containerObject: viewContainers) {
 			org.eclipse.uml2.uml.Package viewContainer=(Package) containerObject;
 			
@@ -311,10 +337,12 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 					creationCommandDescriptor.getCommand().createDiagram((ModelSet) modelSet, root, viewContainer.getName());
 					
 					Diagram newDiagram = getDiagramByName(modelSetNotation, viewContainer.getName());
-					diagramsCreated.put(viewContainer.getName(),newDiagram);
-					diagramsMapping.put(((Diagram) newDiagram).getName(),containerObject);
-					
-					
+					if(newDiagram!=null) {
+						diagramsCreated.put(viewContainer.getName(),newDiagram);
+						diagramsMapping.put(((Diagram) newDiagram).getName(),containerObject);
+					}else {
+						MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "Error while generating diagrams","Unknown diagram "+viewContainer.getName());
+					}
 				}else {
 					MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "Error while generating diagrams","Unknown diagram type "+templateDiagram.getName());
 				}
@@ -339,12 +367,10 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 * @return
 	 * @throws Exception
 	 */
-	public File createViewModel(Object pluginDiagramTemplateDiURI, File templateResultFilelPath, IMultiDiagramEditor  editorPart, ResourceSetImpl modelSet, ISelection selection) throws Exception {
+	public File createViewModel(URI pluginDiagramTemplateDiURI, File templateResultFilelPath, IMultiDiagramEditor  editorPart, ResourceSetImpl modelSet, ISelection selection) throws Exception {
 		TemplateProcessor adapter=new ScriptingEngineTemplateProcessor();
 		
-		String workspacePath=ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-		
-		String templateUML 	= pluginDiagramTemplateDiURI.toString().replace("platform:/resource",workspacePath);
+		String templateUML 	= pluginDiagramTemplateDiURI.toString();
 		templateUML=templateUML.replace("file:","");
 		
 		templateUML 	= templateUML.substring(0,templateUML.length()-2)+ "uml";
@@ -386,7 +412,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			if(i==0) 
 				selectionOclQuery.append("inModel1"); //inModel1 porque en este caso, el modelo de la selección no viene en el modelo principal
 			else {
-				selectionOclQuery.append(".ownedElement->any(e | e.oclAsType(NamedElement).name=\""+(((NamedElement)((EObjectTreeElementImpl)path.getSegment(i)).getEObject()).getName())+"\")");
+				selectionOclQuery.append(".ownedElement->any(e | e.oclIsKindOf(NamedElement) and  e.oclAsType(NamedElement).name=\""+(((NamedElement)((EObjectTreeElementImpl)path.getSegment(i)).getEObject()).getName())+"\")");
 			}
 			if(i==path.getSegmentCount()-1) {
 				selectionOclQuery.append(".oclAsType("+((EObjectTreeElementImpl)path.getSegment(i)).getEObject().eClass().getName()+")");
@@ -429,7 +455,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 			protected void doExecute() {
 				try {
 					IPageManager pageManager = services.getService(IPageManager.class);
-					pageManager.closeAllOpenedPages();
+					//pageManager.closeAllOpenedPages();
 
 					// Go through the diagrams available in the resource
 					for (Object pageDiagram : pageManager.allPages()) {
@@ -438,8 +464,11 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 							String pageID = ((Diagram) pageDiagram).getName();
 							
 							if (diagramsCreated.containsKey(pageID) || diagramsToUpdate.containsKey(pageID)) {
+								
 								//Page need to be open otherwise diagramEditPart will be null
-								pageManager.openPage(pageDiagram);
+								if(!pageManager.isOpen(pageDiagram))
+									pageManager.openPage(pageDiagram);
+								
 								IEditorPart activeEditor = ((PapyrusMultiDiagramEditor) editor).getActiveEditor();
 								
 								if (activeEditor instanceof DiagramEditor) {
@@ -457,6 +486,8 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 
 										// Arrange all recursively
 										arrangeRecursively(activeEditor,diagramEditPart,editingDomain,diagramEditPart);
+									}else {
+										MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "Error while generating diagram.","Error while getting GraphicalViewer Adapter for  active editor.");
 									}
 
 									// This page is processed now (may be not necessary)
@@ -472,6 +503,7 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 		};
 
 		editingDomain.getCommandStack().execute(openPagesCommand);
+		
 	}
 
 	/**
