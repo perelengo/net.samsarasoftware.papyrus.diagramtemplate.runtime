@@ -18,14 +18,14 @@
 	<packaging>eclipse-plugin</packaging>
 
 	<properties>
-		<tycho.version>2.2.0</tycho.version>
+		<tycho.version>2.7.4</tycho.version>
 	</properties>
 
 	<repositories>
 		<repository>
-			<id>eclipse-2021-12</id>
+			<id>eclipse-2022-12</id>
 			<layout>p2</layout>
-			<url>https://download.eclipse.org/releases/2021-12/</url>
+			<url>https://download.eclipse.org/releases/latest/</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -34,7 +34,7 @@
 		<repository>
 			<id>eclipse-papyrus 6 update site</id>
 			<layout>p2</layout>
-			<url>https://download.eclipse.org/modeling/mdt/papyrus/updates/releases/2021-12/</url>
+			<url>https://download.eclipse.org/modeling/mdt/papyrus/updates/releases/latest/</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -59,14 +59,13 @@
 	</repositories>
 
 	<dependencies>
-		<dependency>
+		<!--dependency>
 			<groupId>net.samsarasoftware.scripting</groupId>
 			<artifactId>uml-scripting-engine</artifactId>
 			<version>0.3.0-SNAPSHOT</version>
-		</dependency>
+		</dependency-->
 	</dependencies>
 	<build>
-
 		<plugins>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
@@ -91,7 +90,7 @@
 				<version>${tycho.version}</version>
 				<configuration>
 					<resolver>p2</resolver>
-					<pomDependencies>consider</pomDependencies>
+				
 				</configuration>
 			</plugin>
 			<plugin>
