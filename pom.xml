@@ -129,10 +129,8 @@
 								<inherited>false</inherited>	
 								<configuration>
 									<addParentPoms>true</addParentPoms>
-									<includeGroupIds>p2.eclipse-plugin</includeGroupIds>
 									<copyPom>true</copyPom>
-									<includeTypes>jar</includeTypes>
-									<outputDirectory>${M2_REPO}</outputDirectory>
+									<outputDirectory>C:/Users/pjosepro/.m2/repository</outputDirectory>
 									<useRepositoryLayout>true</useRepositoryLayout>
 								</configuration>
 							</execution>

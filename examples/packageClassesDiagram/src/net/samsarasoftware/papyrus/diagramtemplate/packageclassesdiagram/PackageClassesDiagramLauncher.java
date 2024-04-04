@@ -103,7 +103,8 @@ public class PackageClassesDiagramLauncher extends DiagramTemplateLauncher {
 	            .setProperty(CoreOptions.SPACING_EDGE_NODE, 100d)
 	            .setProperty(CoreOptions.SPACING_LABEL_LABEL, 100d)
 	            .setProperty(CoreOptions.SPACING_LABEL_NODE, 100d)
-	            .setProperty(CoreOptions.SPACING_LABEL_PORT, 100d)
+	            .setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 100d)
+	            .setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 100d)
 	            .setProperty(CoreOptions.SPACING_NODE_NODE, 100d)
 	            .setProperty(CoreOptions.SPACING_NODE_SELF_LOOP, 100d)
 	            .setProperty(CoreOptions.SPACING_PORT_PORT, 100d);

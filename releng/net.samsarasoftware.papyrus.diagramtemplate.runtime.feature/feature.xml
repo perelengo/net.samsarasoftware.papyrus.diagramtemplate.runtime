@@ -94,4 +94,11 @@ END OF TERMS AND CONDITIONS
          version="0.0.0"
          unpack="false"/>
 
+   <plugin
+         id="net.samsarasoftware.papyrus.diagramtemplate.packageclassesdiagram"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>
