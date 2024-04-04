@@ -636,7 +636,8 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 	 */
 	protected EditPart showElementIn(EObject elementToShow, DiagramEditor activeEditor, EditPart editPart, EditPart diagramEditPart) {
 		EditPart returnEditPart = null;
-
+		EditPart targetEditPart=null;
+		
 		if (
 				elementToShow instanceof Element
 			) {
@@ -659,21 +660,43 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 					commandDrop=diagramEditPart.getCommand(dropObjectsRequest);
 				}else {
 					commandDrop=editPart.getCommand(dropObjectsRequest);
+						
 				}
 				
-				boolean processChildren = false;
 				if (commandDrop == null) {
-					processChildren = true;
+					ArrayList<EditPart> childrenList = new ArrayList<EditPart>();
+					findAllChildren(childrenList, editPart);
+					for (Object child : childrenList) {
+						if (child instanceof GraphicalEditPart) {
+							if(
+									((GraphicalEditPart)child).resolveSemanticElement().eResource().getURIFragment(((GraphicalEditPart)child).resolveSemanticElement())
+								.equals(
+										((GraphicalEditPart)editPart).resolveSemanticElement().eResource().getURIFragment(((GraphicalEditPart)child).resolveSemanticElement())
+								)
+							) {
+								commandDrop = ((EditPart) child).getCommand(dropObjectsRequest);
+								if (commandDrop != null && commandDrop.canExecute()) {
+									targetEditPart=(EditPart) child;
+									break;
+								}
+							}
+						}
+					}
 				} else {
-					if (commandDrop.canExecute()) {
+					targetEditPart=editPart;
+				}
+				
+				
+				if (commandDrop.canExecute()) {
+					try {
 						activeEditor.getDiagramEditDomain().getDiagramCommandStack().execute(commandDrop);
 						
 						
-						((GraphicalEditPart)editPart).refresh();
+						((GraphicalEditPart)targetEditPart).refresh();
 						
 						//Buscamos el editPart creado
 						ArrayList<EditPart> childrenList = new ArrayList<EditPart>();
-						findAllChildren(childrenList, editPart);
+						findAllChildren(childrenList, targetEditPart);
 						for (Object child : childrenList) {
 							if (child instanceof GraphicalEditPart) {
 								if(
@@ -681,67 +704,13 @@ public class DiagramTemplateLauncher extends AbstractHandler {
 									.equals(
 										resolved.eResource().getURIFragment(resolved)
 									)
+									&& ((GraphicalEditPart)child).getParent().equals(targetEditPart) 
 								)
 									returnEditPart=(EditPart) child;
 							}
 						}
-						
-						//((GraphicalEditPart)editPart).resolveSemanticElement();
-						//EList elementsInEditPart = ((DiagramEditPart)editPart).getNotationView().getChildren();
-	
-						//View createdView=((View)elementsInEditPart.get(elementsInEditPart.size()-1));
-						//Element element = (Element) createdView.getElement();
-						
-	//					for (Object curr : elementsInEditPart) {
-	//						if(((Element)((View)curr).getElement()).getOwner().equals(container)) {
-	//							((View)createdView.eContainer()).removeChild(createdView);
-	//							((View)curr).insertChild(createdView);
-	//						}
-	//					}
-						/**
-						
-	//					((editPart).getViewer()).getEditPartRegistry().get(
-	//							org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0)
-	//					);
-	//					
-	//					org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.findEditParts(
-	//							(View)((Diagram)org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0).eContainer()).getChildren().get(1)
-	//							);
-	//					((GraphicalViewer)((GraphicalEditPart)editPart).getViewer()).findObjectAt(new Point(10 * (position +1), 10 * (position+1)))
-	//					((GraphicalEditPart)editPart.getTargetEditPart(dropObjectsRequest)).resolveSemanticElement();
-						//((GraphicalViewer)((GraphicalEditPart)editPart).getViewer()).getEditPartRegistry();
-						//((Diagram)org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getEObjectViews(resolved).get(0).eContainer()).getChildren();
-						//org.eclipse.papyrus.infra.gmfdiag.common.utils.DiagramEditPartsUtil.getAllEditParts(editPart)
-						 * 
-						 * 
-						 */
-					} else {
-						processChildren = true;
-					}
-				}
-				
-				if (processChildren) {
-					// try to add to one of its children
-					boolean found = false;
-
-					ArrayList<EditPart> childrenList = new ArrayList<EditPart>();
-					findAllChildren(childrenList, editPart);
-					for (Object child : childrenList) {
-						if (child instanceof EditPart) {
-							Command commandDropChild = ((EditPart) child).getCommand(dropObjectsRequest);
-							if (commandDropChild != null) {
-								if (commandDropChild.canExecute()) {
-									activeEditor.getDiagramEditDomain().getDiagramCommandStack().execute(commandDropChild);
-									found = true;
-									((GraphicalEditPart)child).refresh();
-									returnEditPart = (EditPart) child;
-									break;
-								}
-							}
-						}
-					}
-					if (!found) {
-						returnEditPart = editPart;
+					}catch(Exception e){
+						e.printStackTrace();
 					}
 				}
 			}
